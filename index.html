@@ -9,7 +9,7 @@
     
     <style>
         :root {
-            --primary: #4f46e5; /* Indigo Moderno */
+            --primary: #4f46e5;
             --primary-hover: #4338ca;
             --bg-body: #f3f4f6;
             --bg-card: #ffffff;
@@ -24,7 +24,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; outline: none; }
         body { background-color: var(--bg-body); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; }
 
-        /* --- TELA DE LOGIN MODERNIZADA --- */
+        /* --- AUTH SCREEN --- */
         #auth-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
@@ -54,20 +54,24 @@
         
         .auth-switch { font-size: 13px; color: var(--primary); cursor: pointer; margin-top: 10px; display: inline-block; }
 
-        /* --- LAYOUT DO APP --- */
+        /* --- APP LAYOUT --- */
         #app-content { display: none; height: 100%; }
-        .app-layout { display: grid; grid-template-columns: 260px 1fr; height: 100%; }
+        .app-layout { display: grid; grid-template-columns: 280px 1fr; height: 100%; }
         
         /* Sidebar */
-        .sidebar { background: white; border-right: 1px solid #e5e7eb; padding: 20px; display: flex; flex-direction: column; }
+        .sidebar { background: white; border-right: 1px solid #e5e7eb; padding: 20px; display: flex; flex-direction: column; overflow-y: auto; }
         .brand { font-size: 20px; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 10px; margin-bottom: 40px; }
         .menu-item { padding: 12px; color: var(--text-muted); text-decoration: none; border-radius: 8px; display: flex; align-items: center; gap: 10px; margin-bottom: 5px; font-weight: 500; transition: 0.2s; cursor: pointer; }
         .menu-item:hover, .menu-item.active { background: #eff6ff; color: var(--primary); }
         
         .supplier-widget { margin-top: auto; background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; }
         .supplier-widget h4 { font-size: 12px; text-transform: uppercase; color: #64748b; margin-bottom: 10px; font-weight: 700; }
-        .supplier-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; color: #334155; }
-        .supplier-total { border-top: 1px solid #cbd5e1; padding-top: 8px; margin-top: 8px; font-weight: 700; display: flex; justify-content: space-between; }
+        
+        .supplier-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; margin-bottom: 8px; color: #334155; padding-bottom: 8px; border-bottom: 1px dashed #e2e8f0; }
+        .supplier-info { display: flex; flex-direction: column; }
+        .supplier-actions { display: flex; align-items: center; gap: 5px; }
+        .btn-pay-sm { background: var(--success); color: white; border: none; border-radius: 4px; width: 24px; height: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+        .btn-pay-sm:hover { opacity: 0.9; }
 
         /* Main Content */
         .main { padding: 30px; overflow-y: auto; }
@@ -75,7 +79,7 @@
         .page-title h2 { font-size: 24px; font-weight: 700; color: #111827; }
         .page-title p { color: #6b7280; font-size: 14px; }
 
-        /* Dashboard Cards */
+        /* Stats */
         .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
         .stat-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
         .stat-label { font-size: 13px; color: #6b7280; font-weight: 500; margin-bottom: 5px; }
@@ -89,7 +93,7 @@
 
         /* Table */
         .table-card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; }
-        .table-header { padding: 20px; border-bottom: 1px solid #f3f4f6; display: flex; justify-content: space-between; align-items: center; }
+        .table-header { padding: 20px; border-bottom: 1px solid #f3f4f6; }
         .table-responsive { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; min-width: 1000px; font-size: 14px; }
         th { text-align: left; padding: 15px 20px; background: #f9fafb; color: #6b7280; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
@@ -97,8 +101,8 @@
         tr:last-child td { border-bottom: none; }
         tr:hover { background: #f9fafb; }
 
-        /* Status Badges */
-        .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; display: inline-block; }
+        /* Badges */
+        .badge { padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; margin-left: 8px; vertical-align: middle; }
         .bg-finalizado { background: #dcfce7; color: #166534; }
         .bg-pendente { background: #fef9c3; color: #854d0e; }
         .bg-encomenda { background: #dbeafe; color: #1e40af; }
@@ -112,13 +116,10 @@
         
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
         .full-width { grid-column: span 2; }
-        
         .action-btn { background: none; border: none; cursor: pointer; font-size: 14px; padding: 5px; margin-right: 5px; transition: 0.2s; }
         .btn-edit { color: var(--info); }
         .btn-del { color: var(--danger); }
-        .btn-edit:hover { background: #eff6ff; border-radius: 4px; }
 
-        /* Responsividade */
         @media(max-width: 1024px) { .stats-grid { grid-template-columns: 1fr 1fr; } }
         @media(max-width: 768px) { .app-layout { grid-template-columns: 1fr; } .sidebar { display: none; } }
     </style>
@@ -130,7 +131,6 @@
             <div style="font-size: 40px; margin-bottom: 10px;">📱</div>
             <h1>Gestão RePhone</h1>
             <p id="authTitle">Faça login para acessar o painel</p>
-            
             <form id="authForm">
                 <div class="input-group">
                     <label>E-mail</label>
@@ -142,12 +142,10 @@
                 </div>
                 <button type="submit" class="btn-auth btn-primary" id="btnSubmitAuth">Entrar</button>
             </form>
-
             <div class="divider">ou continue com</div>
             <button id="btnGoogle" class="btn-auth btn-google">
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Google
             </button>
-
             <div class="auth-switch" id="toggleAuth">Não tem conta? Cadastre-se</div>
             <p id="authError" style="color:var(--danger); font-size:13px; margin-top:10px; display:none;"></p>
         </div>
@@ -159,16 +157,12 @@
                 <div class="brand"><i class="fa-solid fa-mobile-screen-button"></i> RePhone Pro</div>
                 <nav>
                     <div class="menu-item active"><i class="fa-solid fa-chart-pie"></i> Dashboard</div>
-                    </nav>
+                </nav>
 
                 <div class="supplier-widget">
-                    <h4>📦 Peças Encomendadas</h4>
+                    <h4>📦 Saldo Fornecedores</h4>
                     <div id="supplierList">
                         </div>
-                    <div class="supplier-total">
-                        <span>Total a Pagar:</span>
-                        <span id="supplierTotalVal">R$ 0,00</span>
-                    </div>
                 </div>
 
                 <button id="btnLogout" class="btn-auth btn-primary" style="margin-top:20px; background:#ef4444;">Sair</button>
@@ -188,12 +182,12 @@
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-icon c-green"><i class="fa-solid fa-dollar-sign"></i></div>
-                        <span class="stat-label">Lucro Líquido (Mês)</span>
+                        <span class="stat-label">Lucro Líquido (Finalizados)</span>
                         <span class="stat-value" id="dashLucro">R$ 0,00</span>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon c-blue"><i class="fa-solid fa-wallet"></i></div>
-                        <span class="stat-label">Faturamento (Mês)</span>
+                        <span class="stat-label">Faturamento (Finalizados)</span>
                         <span class="stat-value" id="dashFat">R$ 0,00</span>
                     </div>
                     <div class="stat-card">
@@ -217,10 +211,9 @@
                             <thead>
                                 <tr>
                                     <th>Data</th>
-                                    <th>OS</th>
+                                    <th>OS / Status</th>
                                     <th>Modelo / Serviço</th>
                                     <th>Fornecedor</th>
-                                    <th>Status</th>
                                     <th>Custo</th>
                                     <th>Valor OS</th>
                                     <th>Ações</th>
@@ -238,7 +231,8 @@
         <div class="modal-content">
             <h2 style="margin-bottom:20px; font-size:20px;" id="modalTitle">Nova Ordem de Serviço</h2>
             <form id="formOS">
-                <input type="hidden" id="editId"> <div class="form-grid">
+                <input type="hidden" id="editId">
+                <div class="form-grid">
                     <div class="input-group">
                         <label>Data</label>
                         <input type="date" id="data" class="input-modern" required>
@@ -262,11 +256,11 @@
                     <div class="input-group">
                         <label>Status</label>
                         <select id="status" class="input-modern">
-                            <option value="ENCOMENDA">📦 ENCOMENDA (Peça Pedida)</option>
-                            <option value="PENDENTE">⏳ PENDENTE (Aguardando)</option>
-                            <option value="FINALIZADO">✅ FINALIZADO (Entregue/Pago)</option>
-                            <option value="DEVOLUÇÃO">🔙 DEVOLUÇÃO (Peça Ruim)</option>
-                            <option value="GARANTIA">🛡️ GARANTIA (Retorno)</option>
+                            <option value="ENCOMENDA">📦 ENCOMENDA</option>
+                            <option value="PENDENTE">⏳ PENDENTE</option>
+                            <option value="FINALIZADO">✅ FINALIZADO</option>
+                            <option value="DEVOLUÇÃO">🔙 DEVOLUÇÃO</option>
+                            <option value="GARANTIA">🛡️ GARANTIA</option>
                         </select>
                     </div>
                     <div class="input-group">
@@ -274,7 +268,7 @@
                         <input type="text" id="fornecedor" class="input-modern" placeholder="Ex: Fornecedor SP">
                     </div>
                     <div class="input-group full-width">
-                        <label>Forma de Pagamento</label>
+                        <label>Forma de Pagamento (Cliente)</label>
                         <input type="text" id="pagamento" class="input-modern" placeholder="Pix, Dinheiro, Cartão">
                     </div>
                 </div>
@@ -286,12 +280,38 @@
         </div>
     </div>
 
+    <div id="modalPagamento" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <h2 style="margin-bottom:10px;">Pagamento ao Fornecedor</h2>
+            <p id="pgtoFornNome" style="color:#666; margin-bottom:20px; font-weight:bold;"></p>
+            
+            <form id="formPagamento">
+                <input type="hidden" id="pgtoFornRef">
+                <div class="input-group">
+                    <label>Valor a Pagar (R$)</label>
+                    <input type="number" id="pgtoValor" class="input-modern" step="0.01" required>
+                </div>
+                <div class="input-group">
+                    <label>Forma de Pagamento</label>
+                    <input type="text" id="pgtoForma" class="input-modern" placeholder="Ex: Pix C6" required>
+                </div>
+                <div class="input-group">
+                    <label>Data Pagamento</label>
+                    <input type="date" id="pgtoData" class="input-modern" required>
+                </div>
+                <div style="text-align:right;">
+                    <button type="button" onclick="fecharModalPagto()" class="btn-auth" style="width:auto; background:#f3f4f6; margin-right:10px;">Cancelar</button>
+                    <button type="submit" class="btn-auth btn-primary" style="width:auto;">Confirmar Pagamento</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
     import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
 
-    // --- CONFIGURAÇÃO (SEU PROJETO) ---
     const firebaseConfig = {
         apiKey: "AIzaSyCoN6SK7Erhh5f67vGNwuP_cGA_LGeNm4U",
         authDomain: "controledeos-2de2c.firebaseapp.com",
@@ -307,15 +327,12 @@
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
 
-    // --- VARIÁVEIS DE ESTADO ---
     let isRegistering = false;
     const mesNomes = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
-
-    // --- DATA HEADER ---
     const hoje = new Date();
     document.getElementById('currentDate').innerText = `Dados de ${mesNomes[hoje.getMonth()]} de ${hoje.getFullYear()}`;
 
-    // --- LÓGICA DE AUTH ---
+    // --- AUTH ---
     const loginScreen = document.getElementById('auth-screen');
     const appContent = document.getElementById('app-content');
     
@@ -330,13 +347,11 @@
         }
     });
 
-    // Toggle Login/Cadastro
     document.getElementById('toggleAuth').addEventListener('click', () => {
         isRegistering = !isRegistering;
         const title = document.getElementById('authTitle');
         const btn = document.getElementById('btnSubmitAuth');
         const toggle = document.getElementById('toggleAuth');
-        
         if (isRegistering) {
             title.innerText = "Crie sua conta de administrador";
             btn.innerText = "Cadastrar";
@@ -348,7 +363,6 @@
         }
     });
 
-    // Form Submit (Login ou Cadastro)
     document.getElementById('authForm').addEventListener('submit', (e) => {
         e.preventDefault();
         const email = document.getElementById('authEmail').value;
@@ -365,15 +379,12 @@
         }
     });
 
-    // Google Login
     document.getElementById('btnGoogle').addEventListener('click', () => {
         signInWithPopup(auth, provider).catch(err => alert(err.message));
     });
-
     document.getElementById('btnLogout').addEventListener('click', () => signOut(auth));
 
-
-    // --- FUNÇÕES UTILITÁRIAS ---
+    // --- UTILS ---
     const fmtMoeda = (val) => (val || 0).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
     const fmtData = (dt) => {
         if(!dt) return "-";
@@ -381,18 +392,16 @@
         return `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear().toString().substr(-2)}`;
     };
 
-    // --- CORE DO SISTEMA ---
+    // --- DADOS E LÓGICA DE NEGÓCIO ---
     async function carregarDados() {
         const tabela = document.getElementById('tabelaCorpo');
-        tabela.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px;">Carregando...</td></tr>';
+        tabela.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px;">Carregando...</td></tr>';
 
         try {
             const q = query(collection(db, "controle_os"), orderBy("data", "desc"));
             const querySnapshot = await getDocs(q);
-            
             tabela.innerHTML = '';
             
-            // Variáveis Dashboard
             let fatMes = 0, custoMes = 0, pendentes = 0, garantias = 0;
             const supplierMap = {};
 
@@ -401,46 +410,54 @@
                 const id = docSnap.id;
                 const valorOS = parseFloat(item.valorOS) || 0;
                 const valorPeca = parseFloat(item.valorPeca) || 0;
+                const valorPagoForn = parseFloat(item.valorPagoFornecedor) || 0;
 
-                // 1. DASHBOARD LOGIC (Rigorosa)
                 const dataItem = new Date(item.data + "T12:00:00");
                 const isMesAtual = dataItem.getMonth() === hoje.getMonth() && dataItem.getFullYear() === hoje.getFullYear();
 
-                // Regra: Lucro só contabiliza se FINALIZADO
+                // Dashboard: Apenas Finalizados entram no Lucro
                 if (isMesAtual && item.status === "FINALIZADO") {
                     fatMes += valorOS;
                     custoMes += valorPeca;
                 }
 
-                // Contadores Gerais
                 if (item.status === "PENDENTE" || item.status === "ENCOMENDA") pendentes++;
                 if (item.status === "GARANTIA") garantias++;
 
-                // 2. RESUMO FORNECEDORES (Peças Encomendadas)
-                if (item.status === "ENCOMENDA" && item.fornecedor) {
+                // --- LÓGICA DO FORNECEDOR ---
+                if (item.fornecedor) {
                     const forn = item.fornecedor.toUpperCase();
-                    if (!supplierMap[forn]) supplierMap[forn] = 0;
-                    supplierMap[forn] += valorPeca;
+                    if (!supplierMap[forn]) supplierMap[forn] = { devido: 0, credito: 0 };
+
+                    // Se for Encomenda ou Finalizado: Soma o que falta pagar
+                    if (item.status === "ENCOMENDA" || item.status === "FINALIZADO") {
+                        supplierMap[forn].devido += (valorPeca - valorPagoForn);
+                    }
+                    // Se for Devolução: Se eu já tinha pago, vira crédito
+                    if (item.status === "DEVOLUÇÃO") {
+                        // Não entra no custo do dashboard, mas gera crédito se paguei
+                        if (valorPagoForn > 0) {
+                            supplierMap[forn].credito += valorPagoForn;
+                        }
+                    }
                 }
 
-                // 3. TABELA RENDER
+                // --- RENDER TABELA ---
                 let badgeClass = "bg-pendente";
                 if(item.status === "FINALIZADO") badgeClass = "bg-finalizado";
                 if(item.status === "ENCOMENDA") badgeClass = "bg-encomenda";
                 if(item.status === "DEVOLUÇÃO") badgeClass = "bg-devolucao";
                 if(item.status === "GARANTIA") badgeClass = "bg-garantia";
 
-                // Se for garantia, valores aparecem zerados ou riscados visualmente?
-                // O pedido foi para não entrar no calculo, mas na tabela mostra o valor registrado.
-                // Mas visualmente vamos deixar mais discreto se for garantia.
-                
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${fmtData(item.data)}</td>
-                    <td style="font-weight:700">#${item.os}</td>
+                    <td style="font-weight:700">
+                        #${item.os} 
+                        <span class="badge ${badgeClass}">${item.status}</span>
+                    </td>
                     <td>${item.modelo}</td>
                     <td style="font-size:12px; text-transform:uppercase;">${item.fornecedor || '-'}</td>
-                    <td><span class="badge ${badgeClass}">${item.status}</span></td>
                     <td style="color:#64748b">${fmtMoeda(valorPeca)}</td>
                     <td style="font-weight:600; color:#111827">${fmtMoeda(valorOS)}</td>
                     <td>
@@ -451,36 +468,112 @@
                 tabela.appendChild(tr);
             });
 
-            // Atualizar UI Dashboard
+            // Atualiza Dashboard
             document.getElementById('dashFat').innerText = fmtMoeda(fatMes);
             document.getElementById('dashLucro').innerText = fmtMoeda(fatMes - custoMes);
             document.getElementById('dashPend').innerText = pendentes;
             document.getElementById('dashGarantia').innerText = garantias;
 
-            // Atualizar UI Fornecedores
+            // Atualiza Lista de Fornecedores
             const supList = document.getElementById('supplierList');
             supList.innerHTML = '';
-            let totalSup = 0;
-            for (const [nome, val] of Object.entries(supplierMap)) {
-                totalSup += val;
-                supList.innerHTML += `
-                    <div class="supplier-row">
-                        <span>${nome}</span>
-                        <span>${fmtMoeda(val)}</span>
-                    </div>`;
+            
+            for (const [nome, dados] of Object.entries(supplierMap)) {
+                // Saldo = O que devo - Meus Créditos
+                const saldoFinal = dados.devido - dados.credito;
+                const corSaldo = saldoFinal > 0 ? '#ef4444' : '#10b981'; // Vermelho se deve, Verde se zerado/crédito
+
+                if (saldoFinal !== 0 || dados.credito > 0) { // Só mostra se tiver movimentação
+                    supList.innerHTML += `
+                        <div class="supplier-row">
+                            <div class="supplier-info">
+                                <span style="font-weight:700;">${nome}</span>
+                                <span style="font-size:11px; color:#666;">
+                                    Devendo: ${fmtMoeda(dados.devido)} 
+                                    ${dados.credito > 0 ? `<br><span style="color:#10b981">Crédito: -${fmtMoeda(dados.credito)}</span>` : ''}
+                                </span>
+                            </div>
+                            <div class="supplier-actions">
+                                <span style="font-weight:700; color:${corSaldo}; margin-right:5px;">${fmtMoeda(saldoFinal)}</span>
+                                ${saldoFinal > 0 ? `<button class="btn-pay-sm" onclick="window.abrirModalPagto('${nome}')" title="Pagar"><i class="fa-solid fa-dollar-sign"></i></button>` : ''}
+                            </div>
+                        </div>`;
+                }
             }
-            if(Object.keys(supplierMap).length === 0) supList.innerHTML = '<div style="font-size:12px; color:#aaa; text-align:center;">Nenhuma encomenda pendente.</div>';
-            document.getElementById('supplierTotalVal').innerText = fmtMoeda(totalSup);
+            if(Object.keys(supplierMap).length === 0) supList.innerHTML = '<div style="font-size:12px; color:#aaa; text-align:center; padding:10px;">Sem pendências.</div>';
 
         } catch (error) {
             console.error(error);
         }
     }
 
-    // --- SALVAR (NOVO OU EDIÇÃO) ---
+    // --- PAGAMENTO FORNECEDOR ---
+    window.abrirModalPagto = (nomeFornecedor) => {
+        document.getElementById('modalPagamento').style.display = 'flex';
+        document.getElementById('pgtoFornNome').innerText = nomeFornecedor;
+        document.getElementById('pgtoFornRef').value = nomeFornecedor;
+        document.getElementById('pgtoValor').value = '';
+        document.getElementById('pgtoForma').value = '';
+        document.getElementById('pgtoData').valueAsDate = new Date();
+    };
+    window.fecharModalPagto = () => document.getElementById('modalPagamento').style.display = 'none';
+
+    document.getElementById('formPagamento').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fornecedor = document.getElementById('pgtoFornRef').value;
+        const valorTotalPagar = parseFloat(document.getElementById('pgtoValor').value);
+        let saldoRestante = valorTotalPagar;
+
+        try {
+            // Busca peças desse fornecedor que precisam ser pagas (Encomenda ou Finalizado)
+            // Ordena por data (Antigo -> Novo) para abater dos mais velhos primeiro
+            const q = query(collection(db, "controle_os"), orderBy("data", "asc"));
+            const snapshot = await getDocs(q);
+
+            const atualizacoes = [];
+
+            snapshot.forEach((docSnap) => {
+                if (saldoRestante <= 0) return; // Dinheiro acabou
+
+                const item = docSnap.data();
+                if (item.fornecedor && item.fornecedor.toUpperCase() === fornecedor.toUpperCase()) {
+                    if (item.status === 'ENCOMENDA' || item.status === 'FINALIZADO') {
+                        const custoPeca = parseFloat(item.valorPeca) || 0;
+                        const jaPago = parseFloat(item.valorPagoFornecedor) || 0;
+                        const faltaPagar = custoPeca - jaPago;
+
+                        if (faltaPagar > 0) {
+                            let pagarNesta = 0;
+                            if (saldoRestante >= faltaPagar) {
+                                pagarNesta = faltaPagar;
+                                saldoRestante -= faltaPagar;
+                            } else {
+                                pagarNesta = saldoRestante;
+                                saldoRestante = 0;
+                            }
+
+                            // Atualiza documento
+                            atualizacoes.push(updateDoc(doc(db, "controle_os", docSnap.id), {
+                                valorPagoFornecedor: jaPago + pagarNesta
+                            }));
+                        }
+                    }
+                }
+            });
+
+            await Promise.all(atualizacoes);
+            alert("Pagamento registrado e abatido das peças mais antigas!");
+            fecharModalPagto();
+            carregarDados();
+
+        } catch (error) {
+            alert("Erro ao processar pagamento: " + error.message);
+        }
+    });
+
+    // --- CRUD PADRÃO ---
     document.getElementById('formOS').addEventListener('submit', async (e) => {
         e.preventDefault();
-        
         const editId = document.getElementById('editId').value;
         const dados = {
             data: document.getElementById('data').value,
@@ -495,10 +588,10 @@
 
         try {
             if (editId) {
-                // Modo Edição
                 await updateDoc(doc(db, "controle_os", editId), dados);
             } else {
-                // Modo Novo
+                // Inicializa campo de pagamento ao fornecedor como 0
+                dados.valorPagoFornecedor = 0; 
                 await addDoc(collection(db, "controle_os"), dados);
             }
             fecharModal();
@@ -508,11 +601,10 @@
         }
     });
 
-    // --- FUNÇÕES GLOBAIS (MODAL & ACTIONS) ---
     window.abrirModal = () => {
         document.getElementById('modalRegistro').style.display = 'flex';
         document.getElementById('formOS').reset();
-        document.getElementById('editId').value = ""; // Limpa ID
+        document.getElementById('editId').value = "";
         document.getElementById('data').valueAsDate = new Date();
         document.getElementById('modalTitle').innerText = "Novo Registro";
         document.getElementById('btnSalvarModal').innerText = "Salvar Registro";
