@@ -8,10 +8,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         body { font-family: 'Inter', sans-serif; font-size: 13px; }
@@ -21,6 +19,8 @@
         .compact-table th { padding: 6px 12px !important; background: #f8fafc; color: #94a3b8; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
         .compact-table td { padding: 8px 12px !important; border-bottom: 1px solid #f1f5f9; }
         .ai-pill { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); transition: all 0.4s ease; }
+        .status-pulse { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
     </style>
 </head>
 <body class="bg-[#f8fafc] text-slate-700">
@@ -41,16 +41,10 @@
             <div class="p-6 text-slate-900 font-black text-base flex items-center gap-2 italic">
                 <i class="fa-solid fa-bolt text-blue-600"></i> OS PRO v4.8
             </div>
-            <nav class="flex-1 space-y-1">
-                <a href="#" onclick="mudarVisao('dashboard', this)" class="sidebar-active flex items-center px-6 py-3 gap-3 font-bold text-xs uppercase">
-                    <i class="fa-solid fa-grid-2"></i> Painel
-                </a>
-                <a href="#" onclick="mudarVisao('relatorios', this)" class="flex items-center px-6 py-3 gap-3 text-slate-400 hover:bg-slate-50 text-xs font-bold uppercase transition-all">
-                    <i class="fa-solid fa-truck"></i> Fornecedores
-                </a>
-                <a href="#" onclick="mudarVisao('pesquisa', this)" class="flex items-center px-6 py-3 gap-3 text-slate-400 hover:bg-slate-50 text-xs font-bold uppercase transition-all">
-                    <i class="fa-solid fa-search"></i> Buscar Peça
-                </a>
+            <nav class="flex-1 space-y-1 text-sm">
+                <a href="#" onclick="mudarVisao('dashboard', this)" class="sidebar-active flex items-center px-6 py-3 gap-3 font-bold text-xs uppercase"><i class="fa-solid fa-grid-2"></i> Painel</a>
+                <a href="#" onclick="mudarVisao('relatorios', this)" class="flex items-center px-6 py-3 gap-3 text-slate-400 hover:bg-slate-50 text-xs font-bold uppercase transition-all"><i class="fa-solid fa-truck"></i> Fornecedores</a>
+                <a href="#" onclick="mudarVisao('pesquisa', this)" class="flex items-center px-6 py-3 gap-3 text-slate-400 hover:bg-slate-50 text-xs font-bold uppercase transition-all"><i class="fa-solid fa-search"></i> Buscar Peça</a>
             </nav>
 
             <div class="px-4 mb-4">
@@ -58,7 +52,7 @@
                     <div id="aiRiskIndicator" class="absolute top-0 right-0 w-1 h-full bg-emerald-500"></div>
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-[8px] font-black uppercase tracking-widest text-blue-400">Gemini 3 Flash</span>
-                        <button onclick="analisarComIA()" class="hover:text-blue-400 transition-colors"><i class="fa-solid fa-bolt text-[10px]"></i></button>
+                        <button onclick="analisarComIA()" class="hover:text-blue-400"><i class="fa-solid fa-bolt text-[10px]"></i></button>
                     </div>
                     <div id="smartAnalysisText" class="text-[10px] leading-tight opacity-70 italic font-medium">IA pronta para análise.</div>
                 </div>
@@ -72,47 +66,59 @@
         <main class="flex-1 overflow-y-auto p-6">
             <div id="view-dashboard" class="view-section active space-y-6">
                 <header class="flex justify-between items-center">
-                    <h2 class="font-black text-slate-800 uppercase italic">Monitoramento Geral</h2>
-                    <div class="flex items-center gap-2">
-                        <button onclick="gerarPDFRelatorio()" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-[10px] font-black uppercase hover:bg-slate-300 transition">
-                            <i class="fa-solid fa-file-pdf mr-1"></i> Exportar PDF
-                        </button>
-                        <button onclick="abrirModal()" class="bg-blue-600 text-white px-5 py-2 rounded-lg text-[10px] font-black uppercase hover:bg-blue-700 shadow-lg">+ Novo Pedido</button>
-                    </div>
+                    <h2 class="font-black text-slate-800 uppercase italic">Painel de Gestão</h2>
+                    <button onclick="abrirModal()" class="bg-blue-600 text-white px-5 py-2 rounded-lg text-[10px] font-black uppercase hover:bg-blue-700 shadow-lg">+ Novo Pedido</button>
                 </header>
 
                 <div class="grid grid-cols-3 gap-4">
-                    <div id="cardAracruz" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-slate-300">
-                        <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Pendente Aracruz</span>
-                        <h3 id="abertoAracruz" class="text-xl font-black text-slate-800 italic mt-1 font-mono">R$ 0,00</h3>
+                    <div id="cardAracruz" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm border-l-4">
+                        <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter italic">Pendente Aracruz</span>
+                        <h3 id="abertoAracruz" class="text-xl font-black text-slate-800 mt-1">R$ 0,00</h3>
                     </div>
-                    <div id="cardColatina" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-slate-300">
-                        <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Pendente Colatina</span>
-                        <h3 id="abertoColatina" class="text-xl font-black text-slate-800 italic mt-1 font-mono">R$ 0,00</h3>
+                    <div id="cardColatina" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm border-l-4">
+                        <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter italic">Pendente Colatina</span>
+                        <h3 id="abertoColatina" class="text-xl font-black text-slate-800 mt-1">R$ 0,00</h3>
                     </div>
-                    <div id="cardOutros" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-slate-300">
-                        <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Outros Pendentes</span>
-                        <h3 id="abertoOutros" class="text-xl font-black text-slate-800 italic mt-1 font-mono">R$ 0,00</h3>
+                    <div id="cardOutros" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm border-l-4">
+                        <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter italic">Outros</span>
+                        <h3 id="abertoOutros" class="text-xl font-black text-slate-800 mt-1">R$ 0,00</h3>
                     </div>
                 </div>
 
-                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 italic">Evolução de Faturamento</h3>
-                    <canvas id="graficoFaturamento" height="80"></canvas>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="bg-slate-900 p-4 rounded-xl text-white shadow-xl">
+                        <p class="text-[9px] font-black text-slate-400 uppercase">Lucro Mês</p>
+                        <h3 id="dashLucro" class="text-2xl font-black text-emerald-400 italic">R$ 0,00</h3>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-slate-200"><p class="text-[9px] font-black text-slate-400 uppercase">Ativas</p><h3 id="dashTotalEncomendas" class="text-xl font-bold">0</h3></div>
+                    <div class="bg-white p-4 rounded-xl border border-slate-200"><p class="text-[9px] font-black text-slate-400 uppercase">Faturamento</p><h3 id="dashFat" class="text-xl font-bold">R$ 0,00</h3></div>
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 border-l-4 border-l-red-500"><p class="text-[9px] font-black text-red-500 uppercase">Dívida Total</p><h3 id="dashDivida" class="text-xl font-black text-red-600">R$ 0,00</h3></div>
                 </div>
 
                 <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-                    <div class="overflow-x-auto">
-                        <table class="w-full compact-table">
-                            <thead>
-                                <tr><th>OS</th><th>Fornecedor</th><th>Modelo</th><th>Data</th><th>Venda</th><th>Status</th><th class="text-right">Ação</th></tr>
-                            </thead>
-                            <tbody id="tabelaDashboard" class="text-xs font-medium"></tbody>
-                        </table>
-                    </div>
+                    <table class="w-full compact-table">
+                        <tbody id="tabelaDashboard" class="text-xs font-medium"></tbody>
+                    </table>
                 </div>
             </div>
-            </main>
+        </main>
+    </div>
+
+    <div id="modalRegistro" class="modal fixed inset-0 z-[6000] hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 text-slate-800">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden">
+            <div class="p-4 border-b flex justify-between items-center bg-slate-50"><h3 class="font-black text-xs uppercase italic">Detalhes da Ordem</h3><button onclick="fecharModais()"><i class="fa-solid fa-xmark"></i></button></div>
+            <form id="formOS" class="p-6 grid grid-cols-2 gap-4">
+                <input type="hidden" id="editId">
+                <div class="col-span-2"><label class="text-[9px] font-black uppercase text-slate-400">Modelo / Peça</label><input type="text" id="modelo" class="w-full p-2 bg-slate-50 border rounded-lg outline-none" required></div>
+                <div><label class="text-[9px] font-black uppercase text-slate-400">Data</label><input type="date" id="data" class="w-full p-2 bg-slate-50 border rounded-lg" required></div>
+                <div><label class="text-[9px] font-black uppercase text-slate-400">OS Nº</label><input type="number" id="os" class="w-full p-2 bg-slate-50 border rounded-lg" required></div>
+                <div><label class="text-[9px] font-black uppercase text-slate-400">Fornecedor</label><select id="fornecedor" class="w-full p-2 bg-slate-50 border rounded-lg"><option value="Aracruz">Aracruz</option><option value="Colatina">Colatina</option><option value="Outros">Outros</option></select></div>
+                <div><label class="text-[9px] font-black uppercase text-slate-400">Status</label><select id="status" class="w-full p-2 bg-slate-50 border rounded-lg"><option value="ENCOMENDA">ENCOMENDA</option><option value="FINALIZADO">FINALIZADO</option><option value="DEVOLUÇÃO">DEVOLUÇÃO</option></select></div>
+                <div><label class="text-[9px] font-black uppercase text-slate-400">Custo (R$)</label><input type="number" id="valorPeca" class="w-full p-2 bg-slate-50 border rounded-lg font-bold" step="0.01"></div>
+                <div><label class="text-[9px] font-black uppercase text-slate-400">Venda (R$)</label><input type="number" id="valorOS" class="w-full p-2 bg-slate-50 border rounded-lg font-bold" step="0.01"></div>
+                <div class="col-span-2 pt-4"><button type="submit" class="w-full bg-blue-600 text-white font-black py-3 rounded-xl uppercase text-[10px] tracking-widest shadow-lg">Salvar Lançamento</button></div>
+            </form>
+        </div>
     </div>
 
 <script type="module">
@@ -121,7 +127,6 @@
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
     import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
 
-    // 1. INSIRA SUAS CREDENCIAIS AQUI
     const firebaseConfig = {
         apiKey: "AIzaSyCoN6SK7Erhh5f67vGNwuP_cGA_LGeNm4U",
         authDomain: "controledeos-2de2c.firebaseapp.com",
@@ -137,152 +142,87 @@
     const genAI = new GoogleGenerativeAI("AIzaSyDCy3mPyBKhVKt8tY2NHcEnyJ9YaqpgbLA");
 
     let todosDados = [];
-    let meuGrafico;
 
-    // --- FUNÇÃO DE LOGIN (O QUE ESTAVA FALTANDO) ---
-    const authForm = document.getElementById('authForm');
-    authForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('authEmail').value;
-        const pass = document.getElementById('authPass').value;
-
-        try {
-            await signInWithEmailAndPassword(auth, email, pass);
-            // O onAuthStateChanged abaixo cuidará de esconder a tela de login
-        } catch (error) {
-            console.error("Erro de login:", error);
-            alert("Falha no login: Verifique e-mail/senha ou permissões no Firebase.");
-        }
+    onAuthStateChanged(auth, (u) => {
+        if(u) { document.getElementById('auth-screen').classList.add('hidden'); document.getElementById('app-content').classList.remove('hidden'); carregarDados(); }
+        else { document.getElementById('auth-screen').classList.remove('hidden'); document.getElementById('app-content').classList.add('hidden'); }
     });
 
-    // Observador de Estado de Autenticação
-    onAuthStateChanged(auth, (user) => {
-        const authScreen = document.getElementById('auth-screen');
-        const appContent = document.getElementById('app-content');
-        
-        if (user) {
-            authScreen.classList.add('hidden');
-            appContent.classList.remove('hidden');
-            document.getElementById('displayUserName').innerText = user.email;
-            carregarDados();
-        } else {
-            authScreen.classList.remove('hidden');
-            appContent.classList.add('hidden');
-        }
-    });
-
-    // Logística de Carregamento de Dados
     async function carregarDados() {
-        try {
-            const q = query(collection(db, "controle_os"), orderBy("data", "desc"));
-            const snapshot = await getDocs(q);
-            todosDados = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-            
-            atualizarSaldosInteligentes();
-            renderizarTabelaPrincipal();
-            atualizarGrafico();
-            atualizarDashboard();
-        } catch (error) {
-            console.error("Erro ao carregar dados:", error);
-        }
-    }
-
-    // --- FUNÇÕES DE INTERFACE ---
-    window.logout = () => signOut(auth);
-
-    window.mudarVisao = (view, btn) => {
-        document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
-        document.getElementById('view-' + view).classList.add('active');
-        document.querySelectorAll('nav a').forEach(a => a.classList.remove('sidebar-active'));
-        btn.classList.add('sidebar-active');
-    };
-
-    function renderizarTabelaPrincipal() {
-        const tbody = document.getElementById('tabelaDashboard');
-        tbody.innerHTML = '';
-        todosDados.forEach(i => {
-            tbody.innerHTML += `
-                <tr>
-                    <td class="font-bold italic">#${i.os || '---'}</td>
-                    <td>${i.fornecedor}</td>
-                    <td>${i.modelo}</td>
-                    <td>${i.data ? new Date(i.data + "T12:00:00").toLocaleDateString('pt-BR') : '---'}</td>
-                    <td class="font-bold text-slate-900">${fmtMoeda(i.valorOS)}</td>
-                    <td><span class="px-2 py-0.5 rounded text-[10px] font-bold ${i.status === 'FINALIZADO' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}">${i.status}</span></td>
-                    <td class="text-right"><i class="fa-solid fa-ellipsis-vertical text-slate-300"></i></td>
-                </tr>`;
-        });
+        const snapshot = await getDocs(query(collection(db, "controle_os"), orderBy("data", "desc")));
+        todosDados = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        atualizarSaldosInteligentes();
+        atualizarDashboard();
+        renderizarTabelaPrincipal();
     }
 
     function atualizarDashboard() {
-        let lucMes = 0;
+        let fat=0, luc=0, enc=0;
+        const hoje = new Date();
         todosDados.forEach(i => {
-            if(i.status === 'FINALIZADO') lucMes += (parseFloat(i.valorOS) || 0) - (parseFloat(i.valorPeca) || 0);
+            if(i.status === 'ENCOMENDA') enc++;
+            const dt = new Date(i.data + "T12:00:00");
+            if(dt.getMonth() === hoje.getMonth() && i.status === 'FINALIZADO') { 
+                fat += (parseFloat(i.valorOS) || 0); 
+                luc += (parseFloat(i.valorOS) || 0) - (parseFloat(i.valorPeca) || 0); 
+            }
         });
-        document.getElementById('dashLucro').innerText = fmtMoeda(lucMes);
+        document.getElementById('dashTotalEncomendas').innerText = enc;
+        document.getElementById('dashFat').innerText = fmtMoeda(fat);
+        document.getElementById('dashLucro').innerText = fmtMoeda(luc);
     }
 
     function atualizarSaldosInteligentes() {
         const saldos = { Aracruz: 0, Colatina: 0, Outros: 0 };
         todosDados.forEach(i => {
-            const divida = (parseFloat(i.valorPeca) || 0);
-            if (i.fornecedor === "Aracruz") saldos.Aracruz += divida;
-            else if (i.fornecedor === "Colatina") saldos.Colatina += divida;
-            else saldos.Outros += divida;
+            if (i.status === 'DEVOLUÇÃO') return;
+            let jaP = 0; if (i.historicoPagamentos) i.historicoPagamentos.forEach(p => jaP += parseFloat(p.valor));
+            const div = Math.max(0, (parseFloat(i.valorPeca) || 0) - jaP);
+            if (saldos[i.fornecedor] !== undefined) saldos[i.fornecedor] += div; else saldos.Outros += div;
         });
-        document.getElementById('abertoAracruz').innerText = fmtMoeda(saldos.Aracruz);
-        document.getElementById('abertoColatina').innerText = fmtMoeda(saldos.Colatina);
-        document.getElementById('abertoOutros').innerText = fmtMoeda(saldos.Outros);
+
+        const totalGeral = saldos.Aracruz + saldos.Colatina + saldos.Outros;
+        document.getElementById('dashDivida').innerText = fmtMoeda(totalGeral);
+
+        const applyAlert = (id, val) => {
+            const card = document.getElementById('card'+id);
+            document.getElementById('aberto'+id).innerText = fmtMoeda(val);
+            card.className = val > 1500 ? "bg-red-50 p-4 rounded-xl border border-red-200 border-l-8 border-l-red-600 shadow-lg status-pulse" : 
+                             val > 800 ? "bg-orange-50 p-4 rounded-xl border border-orange-200 border-l-8 border-l-orange-400 shadow-md" : 
+                             "bg-white p-4 rounded-xl border border-slate-200 border-l-8 border-l-emerald-400 shadow-sm";
+        };
+        applyAlert('Aracruz', saldos.Aracruz); applyAlert('Colatina', saldos.Colatina); applyAlert('Outros', saldos.Outros);
     }
 
-    // Gráfico
-    function atualizarGrafico() {
-        const ctx = document.getElementById('graficoFaturamento').getContext('2d');
-        const meses = [...new Set(todosDados.map(i => i.data?.substring(0, 7)))].filter(m => m).sort();
-        const valores = meses.map(mes => {
-            return todosDados.filter(i => i.data?.startsWith(mes) && i.status === 'FINALIZADO')
-                             .reduce((acc, curr) => acc + (parseFloat(curr.valorOS) || 0), 0);
-        });
-
-        if (meuGrafico) meuGrafico.destroy();
-        meuGrafico = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: meses.map(m => m.split('-').reverse().join('/')),
-                datasets: [{
-                    label: 'Faturamento',
-                    data: valores,
-                    borderColor: '#2563eb',
-                    tension: 0.4,
-                    fill: true,
-                    backgroundColor: 'rgba(37, 99, 235, 0.05)'
-                }]
-            },
-            options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+    function renderizarTabelaPrincipal() {
+        const tb = document.getElementById('tabelaDashboard'); tb.innerHTML = ''; let mesRef = "";
+        todosDados.forEach(i => {
+            const dt = new Date(i.data + "T12:00:00"); const mO = dt.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' }).toUpperCase();
+            if(mO !== mesRef) { mesRef = mO; tb.innerHTML += `<tr class="bg-slate-50"><td colspan="7" class="px-4 py-1 text-[9px] font-black text-slate-300 tracking-widest">${mO}</td></tr>`; }
+            tb.innerHTML += `<tr class="hover:bg-blue-50/20 transition"><td class="font-black text-slate-300 italic text-[11px]">#${i.os}</td><td class="text-slate-400 font-bold">${i.fornecedor}</td><td class="font-semibold text-slate-800">${i.modelo}</td><td class="text-slate-400">${dt.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'})}</td><td class="font-bold text-slate-900">${fmtMoeda(parseFloat(i.valorOS))}</td><td class="text-[9px] font-black uppercase ${i.status === 'FINALIZADO' ? 'text-emerald-500' : 'text-blue-500'}">${i.status}</td><td class="text-right"><button onclick="editarItem('${i.id}')" class="text-slate-300 hover:text-blue-500"><i class="fa-solid fa-pen-to-square"></i></button></td></tr>`;
         });
     }
 
-    // IA
     window.analisarComIA = async () => {
-        const out = document.getElementById('smartAnalysisText');
-        out.innerHTML = "<i class='fa-solid fa-spinner fa-spin mr-1'></i> Pensando...";
+        const out = document.getElementById('smartAnalysisText'); out.innerHTML = "<i class='fa-solid fa-microchip fa-spin'></i>";
         try {
             const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-            const prompt = `Analise financeiramente os dados de pedidos e dê uma dica de gestão em 2 linhas: ${JSON.stringify(todosDados.slice(0,10))}`;
-            const result = await model.generateContent(prompt);
-            out.innerHTML = result.response.text();
-        } catch (e) { out.innerText = "IA ocupada. Tente novamente."; }
+            const prompt = `Analise financeiramente: ${JSON.stringify(todosDados.slice(0,12))}. Resuma em 2 frases sobre lucro e fornecedores perigosos em português. Use HTML <b>.`;
+            const res = await model.generateContent(prompt);
+            out.innerHTML = res.response.text();
+        } catch(e) { out.innerText = "IA indisponível."; }
     };
 
-    // PDF
-    window.gerarPDFRelatorio = () => {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        doc.text("Relatório Geral OS PRO", 14, 20);
-        const rows = todosDados.map(i => [i.os, i.fornecedor, i.modelo, i.data, i.status, fmtMoeda(i.valorOS)]);
-        doc.autoTable({ head: [['OS', 'Forn.', 'Modelo', 'Data', 'Status', 'Valor']], body: rows, startY: 30 });
-        doc.save("relatorio.pdf");
+    window.editarItem = (id) => {
+        const i = todosDados.find(x => x.id === id); if(!i) return;
+        document.getElementById('editId').value = id; document.getElementById('modelo').value = i.modelo; document.getElementById('data').value = i.data;
+        document.getElementById('os').value = i.os; document.getElementById('fornecedor').value = i.fornecedor; document.getElementById('status').value = i.status;
+        document.getElementById('valorPeca').value = i.valorPeca; document.getElementById('valorOS').value = i.valorOS;
+        document.getElementById('modalRegistro').style.display = 'flex';
     };
 
     const fmtMoeda = (v) => (v||0).toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+    window.fecharModais = () => document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
 </script>
+</body>
+</html>
