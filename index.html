@@ -3,364 +3,98 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gestão OS Pro v8.5 - Master BI & AI</title>
+    <title>OS PRO 2026 - Master BI</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
-        .sidebar-active { background-color: #f1f5f9; color: #2563eb; border-right: 4px solid #2563eb; }
+        .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3); }
+        .sidebar-item:hover { transform: translateX(5px); }
+        .active-tab { border-left: 4px solid #2563eb; background: #f1f5f9; color: #2563eb; }
         .view-section { display: none; }
-        .view-section.active { display: block; }
-        .sla-warning { background-color: #fef9c3 !important; } 
-        .sla-danger { background-color: #fee2e2 !important; }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .active-view { display: block; }
     </style>
 </head>
-<body class="text-slate-800">
+<body class="bg-gradient-to-br from-slate-100 to-blue-50 h-screen overflow-hidden text-slate-800">
 
-    <div id="auth-screen" class="fixed inset-0 z-[5000] flex items-center justify-center bg-slate-900">
-        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm text-center">
-            <h1 class="text-2xl font-black mb-6 italic text-slate-800">OS PRO <span class="text-blue-600">v8.5</span></h1>
-            <form id="authForm" class="space-y-4 text-left">
-                <input type="email" id="authEmail" class="w-full p-3 border rounded-xl outline-none focus:ring-2 ring-blue-500" required placeholder="E-mail">
-                <input type="password" id="authPass" class="w-full p-3 border rounded-xl outline-none focus:ring-2 ring-blue-500" required placeholder="Senha">
-                <button type="submit" class="w-full bg-blue-600 text-white font-black py-3 rounded-xl hover:bg-blue-700 transition uppercase text-xs tracking-widest">Entrar</button>
-            </form>
-        </div>
-    </div>
-
-    <div id="app-content" class="hidden h-screen flex overflow-hidden">
-        
-        <aside class="w-64 bg-white border-r flex flex-col shadow-lg z-20">
-            <div class="p-6 text-slate-900 font-black text-xl flex items-center gap-2 italic">
-                <i class="fa-solid fa-rocket text-blue-600"></i> MASTER BI
+    <div id="app" class="flex h-full">
+        <aside class="w-64 glass shadow-2xl z-30 flex flex-col">
+            <div class="p-8 text-2xl font-black italic tracking-tighter text-blue-600">
+                <i class="fa-solid fa-bolt-lightning"></i> OS PRO
             </div>
-            <nav class="flex-1 space-y-1">
-                <a href="#" onclick="mudarVisao('saude', this)" class="sidebar-active flex items-center px-6 py-4 gap-3 font-bold text-xs uppercase transition-all">
-                    <i class="fa-solid fa-heart-pulse w-5"></i> Dashboard Saúde
-                </a>
-                <a href="#" onclick="mudarVisao('comparativo', this)" class="flex items-center px-6 py-4 gap-3 text-slate-400 hover:bg-slate-50 font-bold text-xs uppercase transition-all">
-                    <i class="fa-solid fa-chart-line w-5"></i> Performance Anual
-                </a>
-                <a href="#" onclick="mudarVisao('historico', this)" class="flex items-center px-6 py-4 gap-3 text-slate-400 hover:bg-slate-50 font-bold text-xs uppercase transition-all">
-                    <i class="fa-solid fa-boxes-stacked w-5"></i> Encomendas (SLA)
-                </a>
+            
+            <nav class="flex-1 px-4 space-y-2">
+                <button onclick="mudarVisao('saude')" class="sidebar-item w-full flex items-center p-4 gap-3 font-bold text-xs uppercase tracking-widest transition-all active-tab">
+                    <i class="fa-solid fa-chart-line"></i> Saúde Financeira
+                </button>
+                <button onclick="mudarVisao('ordens')" class="sidebar-item w-full flex items-center p-4 gap-3 font-bold text-xs uppercase tracking-widest transition-all text-slate-400">
+                    <i class="fa-solid fa-clipboard-list"></i> Ordens de Serviço
+                </button>
             </nav>
 
-            <div class="p-4 border-t bg-slate-50 text-center">
-                <button onclick="logout()" class="text-[9px] text-red-500 font-bold px-4 py-2 rounded-lg border border-red-100 hover:bg-red-50 transition">LOGOUT</button>
+            <div class="p-6 border-t border-slate-200">
+                <div id="ia-status" class="bg-slate-900 p-4 rounded-2xl text-[10px] text-blue-300">
+                    <p class="font-black uppercase mb-1">Status da IA</p>
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span> Ativa & Analisando
+                    </div>
+                </div>
             </div>
         </aside>
 
-        <main class="flex-1 overflow-y-auto p-8 bg-slate-100">
+        <main class="flex-1 overflow-y-auto p-10 relative">
             
-            <div id="view-saude" class="view-section active space-y-6">
-                <div class="flex justify-between items-end">
+            <section id="view-saude" class="view-section active-view space-y-10">
+                <header class="flex justify-between items-end">
                     <div>
-                        <h2 class="text-3xl font-black text-slate-800 italic uppercase">Saúde do Negócio</h2>
-                        <p class="text-slate-500 text-xs font-bold uppercase" id="displayDataHoje"></p>
+                        <h1 class="text-4xl font-black italic uppercase">Business Intelligence</h1>
+                        <p class="text-slate-400 font-bold uppercase text-[11px] tracking-[0.3em]">Gestão Estratégica 2026</p>
                     </div>
-                    <button onclick="abrirModal()" class="bg-blue-600 text-white px-6 py-3 rounded-xl text-xs font-black uppercase hover:scale-105 transition shadow-lg">+ Novo Pedido</button>
-                </div>
+                    <div class="flex gap-4">
+                        <button onclick="abrirModal()" class="bg-blue-600 text-white px-8 py-3 rounded-2xl font-black uppercase text-xs shadow-xl hover:bg-blue-700 transition">Novo Lançamento</button>
+                    </div>
+                </header>
 
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <div class="bg-white p-6 rounded-3xl shadow-sm border-b-4 border-blue-500">
-                        <p class="text-[10px] font-black text-slate-400 uppercase italic">Faturamento Mês</p>
-                        <h3 id="dashFat" class="text-2xl font-black text-slate-800">R$ 0,00</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="glass p-8 rounded-[2rem] shadow-sm">
+                        <p class="text-xs font-black text-slate-400 uppercase tracking-widest">Lucro Líquido</p>
+                        <h2 id="total-lucro" class="text-4xl font-black mt-2 text-emerald-600">R$ 0,00</h2>
                     </div>
-                    <div class="bg-white p-6 rounded-3xl shadow-sm border-b-4 border-emerald-500">
-                        <p class="text-[10px] font-black text-slate-400 uppercase italic">Lucro Mês</p>
-                        <h3 id="dashLucro" class="text-2xl font-black text-emerald-600">R$ 0,00</h3>
+                    <div class="glass p-8 rounded-[2rem] shadow-sm">
+                        <p class="text-xs font-black text-slate-400 uppercase tracking-widest">Dívida Ativa</p>
+                        <h2 id="total-divida" class="text-4xl font-black mt-2 text-red-500">R$ 0,00</h2>
                     </div>
-                    <div class="bg-white p-6 rounded-3xl shadow-sm border-b-4 border-red-500">
-                        <p class="text-[10px] font-black text-slate-400 uppercase italic">Dívida Fornecedores</p>
-                        <h3 id="dashDivida" class="text-2xl font-black text-red-600">R$ 0,00</h3>
-                    </div>
-                    <div class="bg-slate-900 p-6 rounded-3xl shadow-xl">
-                        <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest">Insight IA</p>
-                        <div id="aiSummary" class="text-[10px] text-white italic mt-2 opacity-80 leading-tight">Gere a análise na aba de Performance.</div>
+                    <div class="bg-slate-900 p-8 rounded-[2rem] shadow-2xl text-white">
+                        <p class="text-xs font-black text-blue-400 uppercase tracking-widest">Insight da IA</p>
+                        <div id="ai-insight" class="mt-3 text-xs italic opacity-80 leading-relaxed">
+                            Analise seus dados para gerar o relatório estratégico de hoje.
+                        </div>
                     </div>
                 </div>
+            </section>
 
-                <div class="bg-white p-6 rounded-3xl shadow-sm border">
-                    <h4 class="text-xs font-black uppercase text-slate-400 mb-4 italic">Saldos por Fornecedor</h4>
-                    <div id="listaFornecedores" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
-                </div>
-            </div>
-
-            <div id="view-comparativo" class="view-section space-y-6">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-2xl font-black text-slate-800 uppercase italic">BI & Comparativos</h2>
-                    <button onclick="analisarComIA()" class="bg-slate-900 text-white px-5 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-black transition">
-                        <i class="fa-solid fa-robot mr-2"></i> Analisar com IA
-                    </button>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="bg-white p-6 rounded-3xl shadow-sm">
-                        <h3 class="font-black text-xs uppercase mb-4 text-blue-600 italic">Trimestral (Lucro Líquido)</h3>
-                        <div id="gridTrimestral" class="space-y-2 text-xs"></div>
-                    </div>
-                    <div class="bg-white p-6 rounded-3xl shadow-sm">
-                        <h3 class="font-black text-xs uppercase mb-4 text-emerald-600 italic">Semestral (Lucro Líquido)</h3>
-                        <div id="gridSemestral" class="space-y-2 text-xs"></div>
-                    </div>
-                </div>
-                <div class="bg-slate-900 p-8 rounded-3xl shadow-2xl text-white">
-                    <h3 class="text-blue-400 font-black uppercase text-xs mb-4 italic tracking-widest">Relatório Estratégico</h3>
-                    <div id="aiRelatorioDetalhado" class="text-sm opacity-90 space-y-4 leading-relaxed font-medium">
-                        Aguardando comando de análise...
-                    </div>
-                </div>
-            </div>
-
-            <div id="view-historico" class="view-section space-y-6">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-2xl font-black text-slate-800 uppercase italic">Controle de Prazos</h2>
-                    <button onclick="exportarExcel()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-emerald-700 transition">
-                        <i class="fa-solid fa-file-excel mr-2"></i> Relatório Excel
-                    </button>
-                </div>
-                <div class="bg-white rounded-3xl border shadow-sm overflow-hidden">
-                    <table class="w-full text-left">
-                        <thead class="bg-slate-50 text-[10px] font-black uppercase text-slate-400 border-b">
-                            <tr><th class="px-6 py-4">Status</th><th class="px-6 py-4">Data</th><th class="px-6 py-4">OS/Forn</th><th class="px-6 py-4">Modelo</th><th class="px-6 py-4">Venda</th><th class="px-6 py-4">Ação</th></tr>
+            <section id="view-ordens" class="view-section space-y-6">
+                <h2 class="text-2xl font-black uppercase italic">Histórico de Encomendas</h2>
+                <div class="glass rounded-3xl overflow-hidden">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-white/50 font-black uppercase text-slate-400">
+                            <tr><th class="p-6">Data</th><th class="p-6">OS</th><th class="p-6">Forn.</th><th class="p-6">Peça</th><th class="p-6">Status</th></tr>
                         </thead>
-                        <tbody id="tabelaHistorico" class="text-xs divide-y"></tbody>
+                        <tbody id="tabela-os"></tbody>
                     </table>
                 </div>
-            </div>
-
+            </section>
         </main>
     </div>
 
-    <div id="modalRegistro" class="modal fixed inset-0 z-[6000] hidden items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-        <div class="bg-white w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden border">
-            <div class="p-6 bg-slate-50 border-b flex justify-between items-center">
-                <h3 class="font-black uppercase italic text-xs">Formulário de Ordem de Serviço</h3>
-                <button onclick="fecharModais()"><i class="fa-solid fa-times text-xl text-slate-300 hover:text-red-500 transition"></i></button>
-            </div>
-            <form id="formOS" class="p-8 grid grid-cols-2 gap-4">
-                <input type="hidden" id="editId">
-                <div class="col-span-2 grid grid-cols-3 gap-3">
-                    <div><label class="text-[9px] font-black text-slate-400 uppercase">Data</label><input type="date" id="data" class="w-full p-2 border rounded-lg font-bold bg-slate-50" required></div>
-                    <div><label class="text-[9px] font-black text-slate-400 uppercase">Nº OS</label><input type="number" id="os" class="w-full p-2 border rounded-lg font-bold bg-slate-50" required></div>
-                    <div><label class="text-[9px] font-black text-slate-400 uppercase">Forn.</label><select id="fornecedor" class="w-full p-2 border rounded-lg font-bold bg-slate-50"><option>Aracruz</option><option>Colatina</option><option>Outros</option></select></div>
-                </div>
-                <div class="col-span-2"><label class="text-[9px] font-black text-slate-400 uppercase">Modelo / Descrição da Peça</label><input type="text" id="modelo" class="w-full p-2 border rounded-lg font-bold bg-slate-50" required></div>
-                <div><label class="text-[9px] font-black text-slate-400 uppercase">Custo Peça (R$)</label><input type="number" id="valorPeca" step="0.01" class="w-full p-2 border rounded-lg font-black text-red-600 bg-slate-50"></div>
-                <div><label class="text-[9px] font-black text-slate-400 uppercase">Venda Cliente (R$)</label><input type="number" id="valorOS" step="0.01" class="w-full p-2 border rounded-lg font-black text-emerald-600 bg-slate-50"></div>
-                <div><label class="text-[9px] font-black text-slate-400 uppercase">Status</label><select id="status" class="w-full p-2 border rounded-lg font-bold bg-slate-50"><option value="ENCOMENDA">ENCOMENDA</option><option value="FINALIZADO">FINALIZADO</option><option value="DEVOLUÇÃO">DEVOLUÇÃO</option></select></div>
-                
-                <div class="col-span-2 grid grid-cols-2 gap-4 border-t pt-4">
-                    <div><label class="text-[9px] font-black text-slate-400 uppercase">Pgto 1</label><select id="pgtoForma1" class="w-full p-2 border rounded-lg text-xs mb-1 bg-slate-50"><option value="">Forma...</option><option>Dinheiro</option><option>Pix</option><option>Crédito</option><option>Débito</option></select><input type="number" id="pgtoValor1" step="0.01" placeholder="R$" class="w-full p-2 border rounded-lg text-xs font-bold bg-slate-50"></div>
-                    <div><label class="text-[9px] font-black text-slate-400 uppercase">Pgto 2</label><select id="pgtoForma2" class="w-full p-2 border rounded-lg text-xs mb-1 bg-slate-50"><option value="">Forma...</option><option>Dinheiro</option><option>Pix</option><option>Crédito</option><option>Débito</option></select><input type="number" id="pgtoValor2" step="0.01" placeholder="R$" class="w-full p-2 border rounded-lg text-xs font-bold bg-slate-50"></div>
-                </div>
-                <button type="submit" class="col-span-2 bg-blue-600 text-white font-black py-4 rounded-2xl uppercase text-xs tracking-widest shadow-xl hover:bg-blue-700 transition-all mt-4">Salvar Registro</button>
-            </form>
+    <div id="modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-900/40 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-lg p-10 rounded-[3rem] shadow-3xl">
+            <h3 class="text-2xl font-black italic uppercase mb-6">Lançar Ordem</h3>
+            <button onclick="fecharModal()" class="w-full bg-slate-100 py-4 rounded-2xl font-bold uppercase text-xs">Fechar</button>
         </div>
     </div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
-    import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
-
-    const firebaseConfig = {
-        apiKey: "AIzaSyCoN6SK7Erhh5f67vGNwuP_cGA_LGeNm4U",
-        authDomain: "controledeos-2de2c.firebaseapp.com",
-        projectId: "controledeos-2de2c",
-        storageBucket: "controledeos-2de2c.firebasestorage.app",
-        messagingSenderId: "1037478732552",
-        appId: "1:1037478732552:web:3d32412d5a713c3cc042bd"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
-    
-    // IA CONFIG - Única instância usando sua chave funcional
-    const genAI = new GoogleGenerativeAI("AIzaSyCha6XRWgfXY1PxtreksvS_rP4SLBF9nh0");
-
-    let todosDados = [];
-
-    onAuthStateChanged(auth, (u) => {
-        if(u) { document.getElementById('auth-screen').classList.add('hidden'); document.getElementById('app-content').classList.remove('hidden'); carregarDados(); }
-        else { document.getElementById('auth-screen').classList.remove('hidden'); document.getElementById('app-content').classList.add('hidden'); }
-    });
-
-    document.getElementById('authForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        try { await signInWithEmailAndPassword(auth, document.getElementById('authEmail').value, document.getElementById('authPass').value); }
-        catch(err) { alert("Dados incorretos."); }
-    });
-
-    window.logout = () => signOut(auth);
-
-    async function carregarDados() {
-        const q = query(collection(db, "controle_os"), orderBy("data", "desc"));
-        const snap = await getDocs(q);
-        todosDados = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        
-        atualizarSaude();
-        processarPerformance();
-        renderizarTabelaSLA();
-        document.getElementById('displayDataHoje').innerText = new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric', day: 'numeric' });
-    }
-
-    function atualizarSaude() {
-        let fat=0, luc=0, div=0;
-        const fornSaldos = { Aracruz: 0, Colatina: 0, Outros: 0 };
-        const hoje = new Date();
-
-        todosDados.forEach(i => {
-            const vOS = parseFloat(i.valorOS) || 0;
-            const vP = parseFloat(i.valorPeca) || 0;
-            const dt = new Date(i.data + "T12:00:00");
-
-            if(dt.getMonth() === hoje.getMonth() && i.status === 'FINALIZADO') {
-                fat += vOS; luc += (vOS - vP);
-            }
-
-            let pago = 0; if(i.historicoPagamentos) i.historicoPagamentos.forEach(p => pago += parseFloat(p.valor));
-            const deb = Math.max(0, vP - pago);
-            if(i.status !== 'DEVOLUÇÃO' && i.status !== 'GARANTIA') {
-                div += deb;
-                if(fornSaldos[i.fornecedor] !== undefined) fornSaldos[i.fornecedor] += deb;
-                else fornSaldos.Outros += deb;
-            }
-        });
-
-        document.getElementById('dashFat').innerText = fmtMoeda(fat);
-        document.getElementById('dashLucro').innerText = fmtMoeda(luc);
-        document.getElementById('dashDivida').innerText = fmtMoeda(div);
-
-        const list = document.getElementById('listaFornecedores');
-        list.innerHTML = '';
-        for (const [key, val] of Object.entries(fornSaldos)) {
-            list.innerHTML += `<div class="p-4 bg-slate-50 rounded-2xl flex justify-between items-center border border-slate-100"><span class="font-bold text-[10px] uppercase">${key}</span><span class="font-black ${val > 1000 ? 'text-red-500' : 'text-slate-700'}">${fmtMoeda(val)}</span></div>`;
-        }
-    }
-
-    function processarPerformance() {
-        const trim = { Q1: 0, Q2: 0, Q3: 0, Q4: 0 };
-        const sem = { S1: 0, S2: 0 };
-
-        todosDados.forEach(i => {
-            if(i.status !== 'FINALIZADO') return;
-            const m = new Date(i.data + "T12:00:00").getMonth() + 1;
-            const v = (parseFloat(i.valorOS) || 0) - (parseFloat(i.valorPeca) || 0);
-
-            if(m <= 3) trim.Q1 += v; else if(m <= 6) trim.Q2 += v; else if(m <= 9) trim.Q3 += v; else trim.Q4 += v;
-            if(m <= 6) sem.S1 += v; else sem.S2 += v;
-        });
-
-        document.getElementById('gridTrimestral').innerHTML = Object.entries(trim).map(([k, v]) => `<div class="flex justify-between border-b py-2"><span>${k}</span><span class="font-bold text-blue-600">${fmtMoeda(v)}</span></div>`).join('');
-        document.getElementById('gridSemestral').innerHTML = Object.entries(sem).map(([k, v]) => `<div class="flex justify-between border-b py-2"><span>${k}</span><span class="font-bold text-emerald-600">${fmtMoeda(v)}</span></div>`).join('');
-    }
-
-    function renderizarTabelaSLA() {
-        const tb = document.getElementById('tabelaHistorico');
-        tb.innerHTML = ''; const hoje = new Date();
-
-        todosDados.forEach(i => {
-            const dt = new Date(i.data + "T12:00:00");
-            const diff = Math.floor((hoje - dt) / (1000 * 60 * 60 * 24));
-            let sla = "";
-            if(i.status === 'ENCOMENDA') {
-                if(diff > 15) sla = "sla-danger"; else if(diff > 7) sla = "sla-warning";
-            }
-
-            tb.innerHTML += `<tr class="${sla} transition-all">
-                <td class="px-6 py-4"><span class="px-2 py-1 bg-white border rounded-full text-[9px] font-black">${i.status}</span></td>
-                <td class="px-6 py-4 text-slate-400 font-bold">${dt.toLocaleDateString('pt-BR')}</td>
-                <td class="px-6 py-4 font-black">#${i.os} - ${i.fornecedor}</td>
-                <td class="px-6 py-4">${i.modelo}</td>
-                <td class="px-6 py-4 font-black">${fmtMoeda(i.valorOS)}</td>
-                <td class="px-6 py-4 text-right"><button onclick="editarItem('${i.id}')" class="text-blue-500 hover:scale-110 transition"><i class="fa-solid fa-pen-to-square"></i></button></td>
-            </tr>`;
-        });
-    }
-
-    // IA CENTRALIZADA (v8.5 FIX)
-    window.analisarComIA = async () => {
-        const out = document.getElementById('aiRelatorioDetalhado');
-        out.innerHTML = "<i class='fa-solid fa-circle-notch fa-spin text-blue-500'></i> Analisando performance anual e dívidas...";
-        try {
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-            const context = {
-                saude: {
-                    faturamento: document.getElementById('dashFat').innerText,
-                    lucro: document.getElementById('dashLucro').innerText,
-                    divida: document.getElementById('dashDivida').innerText
-                },
-                performance: document.getElementById('gridTrimestral').innerText
-            };
-
-            const prompt = `Como analista de negócios, avalie estes dados: ${JSON.stringify(context)}. 
-            Identifique 1 ponto crítico e sugira 1 meta para o próximo trimestre. Use <b> e <li>. Seja direto.`;
-
-            const result = await model.generateContent(prompt);
-            const response = await result.response;
-            out.innerHTML = response.text();
-            document.getElementById('aiSummary').innerHTML = "Insights estratégicos prontos!";
-        } catch (e) { 
-            console.error(e);
-            out.innerHTML = "<span class='text-red-500 font-bold'>Erro na IA:</span> Verifique se o domínio github.io está permitido na sua API Key ou se a chave expirou."; 
-        }
-    };
-
-    window.exportarExcel = () => {
-        const ws = XLSX.utils.json_to_sheet(todosDados);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Dados_Gerais");
-        XLSX.writeFile(wb, "Relatorio_BI_OS.xlsx");
-    };
-
-    window.editarItem = (id) => {
-        const i = todosDados.find(x => x.id === id); if(!i) return;
-        document.getElementById('editId').value = id;
-        document.getElementById('modelo').value = i.modelo; document.getElementById('data').value = i.data;
-        document.getElementById('os').value = i.os; document.getElementById('fornecedor').value = i.fornecedor;
-        document.getElementById('status').value = i.status; document.getElementById('valorPeca').value = i.valorPeca;
-        document.getElementById('valorOS').value = i.valorOS;
-        document.getElementById('pgtoForma1').value = i.recebimento?.forma1 || '';
-        document.getElementById('pgtoValor1').value = i.recebimento?.valor1 || '';
-        document.getElementById('pgtoForma2').value = i.recebimento?.forma2 || '';
-        document.getElementById('pgtoValor2').value = i.recebimento?.valor2 || '';
-        document.getElementById('modalRegistro').style.display = 'flex';
-    };
-
-    document.getElementById('formOS').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const id = document.getElementById('editId').value;
-        const dados = {
-            modelo: document.getElementById('modelo').value, data: document.getElementById('data').value,
-            os: document.getElementById('os').value, fornecedor: document.getElementById('fornecedor').value,
-            status: document.getElementById('status').value, valorPeca: parseFloat(document.getElementById('valorPeca').value) || 0,
-            valorOS: parseFloat(document.getElementById('valorOS').value) || 0,
-            recebimento: { 
-                forma1: document.getElementById('pgtoForma1').value, valor1: parseFloat(document.getElementById('pgtoValor1').value) || 0, 
-                forma2: document.getElementById('pgtoForma2').value, valor2: parseFloat(document.getElementById('pgtoValor2').value) || 0 
-            }
-        };
-        if(id) await updateDoc(doc(db, "controle_os", id), dados); else await addDoc(collection(db, "controle_os"), dados);
-        fecharModais(); carregarDados();
-    });
-
-    window.mudarVisao = (view, btn) => {
-        document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
-        document.getElementById('view-' + view).classList.add('active');
-        document.querySelectorAll('nav a').forEach(a => a.classList.remove('sidebar-active'));
-        btn.classList.add('sidebar-active');
-    };
-    window.abrirModal = () => { document.getElementById('formOS').reset(); document.getElementById('editId').value = ''; document.getElementById('modalRegistro').style.display = 'flex'; };
-    window.fecharModais = () => document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
-    const fmtMoeda = (v) => (v||0).toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
-</script>
+    <script type="module" src="script.js"></script>
 </body>
 </html>
