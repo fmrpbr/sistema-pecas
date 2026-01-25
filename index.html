@@ -327,17 +327,63 @@
         });
     }
 
-    // IA GEMINI
-    window.analisarComIA = async () => {
-        const out = document.getElementById('smartAnalysisText');
-        out.innerHTML = "<i class='fa-solid fa-spinner fa-spin mr-1'></i> IA lendo dados...";
-        try {
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-            const prompt = `Analise: ${JSON.stringify(todosDados.slice(0,10))}. Me dê 2 insights financeiros curtos em Português sobre lucro e fornecedores. Seja direto. Use HTML <b>.`;
-            const res = await model.generateContent(prompt);
-            out.innerHTML = res.response.text();
-        } catch(e) { out.innerText = "IA indisponível no momento."; }
-    };
+   window.analisarComIA = async () => {
+    const out = document.getElementById('smartAnalysisText');
+    const btn = event.currentTarget;
+    
+    // 1. Verificação de Dados
+    if (!todosDados || todosDados.length === 0) {
+        out.innerHTML = "<span class='text-amber-500 font-bold'><i class='fa-solid fa-circle-exclamation'></i> Cadastre algumas ordens primeiro para a IA analisar.</span>";
+        return;
+    }
+
+    // 2. Verificação de Chave (Troque SUA_CHAVE pela real se ainda não trocou)
+    if (genAI.apiKey.includes("AIzaSyDCy3mPyBKhVKt8tY2NHcEnyJ9YaqpgbLA") || !genAI.apiKey) {
+        out.innerHTML = "<span class='text-red-500 font-bold'><i class='fa-solid fa-key'></i> Chave de API não configurada. Verifique o código.</span>";
+        return;
+    }
+
+    btn.disabled = true;
+    btn.classList.add('opacity-50');
+    out.innerHTML = "<i class='fa-solid fa-microchip fa-spin mr-1'></i> O Gemini está cruzando seus dados financeiros...";
+
+    try {
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        
+        // Simplificando os dados para a IA focar no financeiro
+        const payload = todosDados.slice(0, 15).map(i => ({
+            desc: i.modelo,
+            forn: i.fornecedor,
+            custo: i.valorPeca,
+            venda: i.valorOS,
+            status: i.status
+        }));
+
+        const prompt = `
+            Você é um analista de negócios para uma assistência técnica. 
+            Dados: ${JSON.stringify(payload)}.
+            Responda em Português (Brasil) de forma ultra-curta (máximo 200 caracteres):
+            1. Qual o fornecedor com melhor custo-benefício?
+            2. O lucro está saudável?
+            3. Dê uma dica de ouro para amanhã.
+            Use HTML <b> para termos chave.
+        `;
+
+        const res = await model.generateContent(prompt);
+        const text = await res.response.text();
+        
+        // Saída elegante
+        out.innerHTML = `<div class="animate-pulse text-blue-100"><i class="fa-solid fa-comment-dots mr-2"></i>${text}</div>`;
+        out.classList.remove('animate-pulse'); // Remove o pulso após carregar
+
+    } catch (e) {
+        console.error("Erro Gemini:", e);
+        out.innerHTML = `<span class="text-red-400 font-bold">Erro técnico: ${e.message.substring(0, 50)}...</span>`;
+    } finally {
+        btn.disabled = false;
+        btn.classList.remove('opacity-50');
+    }
+};
 
     // FORNECEDORES (Relatório)
     window.filtrarRelatorio = (forn, btn) => {
