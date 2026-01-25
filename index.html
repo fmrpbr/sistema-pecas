@@ -192,6 +192,12 @@
                              "bg-white p-4 rounded-xl border border-slate-200 border-l-8 border-l-emerald-400 shadow-sm";
         };
         applyAlert('Aracruz', saldos.Aracruz); applyAlert('Colatina', saldos.Colatina); applyAlert('Outros', saldos.Outros);
+
+        // Alerta Visual IA (Lado Esquerdo)
+        const riskBar = document.getElementById('aiRiskIndicator');
+        if(totalGeral > 2000) riskBar.className = "absolute top-0 right-0 w-2 h-full bg-red-600 status-pulse";
+        else if(totalGeral > 1000) riskBar.className = "absolute top-0 right-0 w-2 h-full bg-orange-400";
+        else riskBar.className = "absolute top-0 right-0 w-2 h-full bg-emerald-500";
     }
 
     function renderizarTabelaPrincipal() {
