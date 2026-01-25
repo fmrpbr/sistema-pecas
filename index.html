@@ -3,186 +3,176 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gestão OS Pro v3.5 - BI & Analytics</title>
+    <title>Gestão OS Pro v4.0 - Minimalist</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
 
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .sidebar-item-active { background-color: #eff6ff; color: #2563eb; border-right: 4px solid #2563eb; }
+        body { font-family: 'Inter', sans-serif; font-size: 14px; }
+        .sidebar-active { background-color: #f8fafc; color: #2563eb; border-right: 3px solid #2563eb; }
         .view-section { display: none; }
         .view-section.active { display: block; }
-        @media print { .no-print { display: none; } }
+        input, select { font-size: 0.875rem !important; }
+        .compact-table th { padding: 8px 16px !important; }
+        .compact-table td { padding: 10px 16px !important; }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-900">
+<body class="bg-[#f1f5f9] text-slate-700">
 
-    <div id="auth-screen" class="fixed inset-0 z-[3000] flex items-center justify-center bg-slate-900">
-        <div class="bg-white p-10 rounded-2xl shadow-2xl w-full max-w-md text-center">
-            <h1 class="text-3xl font-extrabold text-slate-800 mb-2">Gestão OS Pro</h1>
-            <p class="text-gray-500 mb-8" id="authTitle">Acesso ao Painel Administrativo</p>
-            <form id="authForm" class="space-y-4">
-                <input type="text" id="authName" class="w-full p-3 border border-gray-300 rounded-lg hidden" placeholder="Seu Nome">
-                <input type="email" id="authEmail" class="w-full p-3 border border-gray-300 rounded-lg" required placeholder="E-mail">
-                <input type="password" id="authPass" class="w-full p-3 border border-gray-300 rounded-lg" required placeholder="Senha">
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition" id="btnAuthSubmit">Entrar</button>
+    <div id="auth-screen" class="fixed inset-0 z-[5000] flex items-center justify-center bg-slate-900">
+        <div class="bg-white p-8 rounded-xl shadow-xl w-full max-w-sm text-center">
+            <h1 class="text-xl font-bold text-slate-800 mb-6">Controle OS Pro</h1>
+            <form id="authForm" class="space-y-3">
+                <input type="text" id="authName" class="w-full p-2.5 border rounded-lg hidden" placeholder="Nome">
+                <input type="email" id="authEmail" class="w-full p-2.5 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500" required placeholder="E-mail">
+                <input type="password" id="authPass" class="w-full p-2.5 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500" required placeholder="Senha">
+                <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-2.5 rounded-lg hover:bg-blue-700">Entrar</button>
             </form>
-            <p class="mt-6 text-sm text-blue-600 cursor-pointer underline auth-toggle" onclick="toggleRegister()">Criar nova conta</p>
+            <p class="mt-4 text-xs text-blue-600 cursor-pointer" onclick="toggleRegister()">Criar conta</p>
         </div>
     </div>
 
-    <div id="app-content" class="hidden h-screen flex overflow-hidden">
-        <aside class="w-64 bg-white border-r border-gray-200 flex flex-col no-print">
-            <div class="p-6 flex items-center gap-3 text-blue-600">
-                <i class="fa-solid fa-microchip text-2xl"></i>
-                <span class="font-extrabold text-xl tracking-tight text-slate-800">OS PRO <span class="text-blue-600">v3</span></span>
+    <div id="app-content" class="hidden h-screen flex">
+        
+        <aside class="w-56 bg-white border-r flex flex-col no-print">
+            <div class="p-5 text-blue-600 font-bold text-lg flex items-center gap-2">
+                <i class="fa-solid fa-microchip"></i> OS PRO <span class="text-xs font-normal text-slate-400">v4</span>
             </div>
-            <nav class="flex-1 mt-4">
-                <div class="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-widest">Menu</div>
-                <a href="#" onclick="mudarVisao('dashboard', this)" class="sidebar-item-active flex items-center px-6 py-4 gap-3 font-medium transition-all">
-                    <i class="fa-solid fa-chart-line"></i> Dashboard
+            <nav class="flex-1 space-y-1">
+                <a href="#" onclick="mudarVisao('dashboard', this)" class="sidebar-active flex items-center px-5 py-3 gap-3 font-medium text-sm transition-all">
+                    <i class="fa-solid fa-gauge-high w-4"></i> Painel
                 </a>
-                <a href="#" onclick="mudarVisao('relatorios', this)" class="flex items-center px-6 py-4 gap-3 text-gray-600 hover:bg-gray-50 font-medium transition-all">
-                    <i class="fa-solid fa-file-invoice-dollar"></i> Fornecedores
+                <a href="#" onclick="mudarVisao('relatorios', this)" class="flex items-center px-5 py-3 gap-3 text-slate-500 hover:bg-slate-50 text-sm transition-all">
+                    <i class="fa-solid fa-truck-ramp-box w-4"></i> Fornecedores
                 </a>
-                <a href="#" onclick="mudarVisao('pesquisa', this)" class="flex items-center px-6 py-4 gap-3 text-gray-600 hover:bg-gray-50 font-medium transition-all">
-                    <i class="fa-solid fa-magnifying-glass"></i> Pesquisar Peça
+                <a href="#" onclick="mudarVisao('pesquisa', this)" class="flex items-center px-5 py-3 gap-3 text-slate-500 hover:bg-slate-50 text-sm transition-all">
+                    <i class="fa-solid fa-search w-4"></i> Buscar Peça
                 </a>
-                <div class="px-4 py-6 text-xs font-semibold text-gray-400 uppercase tracking-widest">Sessão</div>
-                <div class="mx-4 p-4 bg-slate-50 rounded-xl border border-gray-100">
-                    <p id="displayUserName" class="text-sm font-bold text-slate-700 truncate">Usuário</p>
-                    <button onclick="logout()" class="mt-4 w-full text-xs bg-red-50 text-red-600 py-2 rounded-lg hover:bg-red-100 transition">Sair</button>
-                </div>
             </nav>
+            <div class="p-4 border-t bg-slate-50">
+                <p id="displayUserName" class="text-xs font-bold truncate">Usuário</p>
+                <button onclick="logout()" class="text-[10px] text-red-500 font-bold mt-1 uppercase">Sair</button>
+            </div>
         </aside>
 
-        <main class="flex-1 overflow-y-auto bg-gray-50 p-8">
-            <div id="view-dashboard" class="view-section active space-y-8">
-                <header class="flex justify-between items-center no-print">
+        <main class="flex-1 overflow-y-auto p-6">
+            
+            <div id="view-dashboard" class="view-section active space-y-6">
+                <header class="flex justify-between items-end">
                     <div>
-                        <h2 class="text-2xl font-extrabold text-slate-800 italic">Visão de Negócio</h2>
-                        <p id="clock" class="text-blue-600 font-bold text-sm uppercase tracking-widest"></p>
+                        <h2 class="text-lg font-bold text-slate-800">Dashboard de Gestão</h2>
+                        <p id="clock" class="text-xs text-slate-400 font-mono"></p>
                     </div>
-                    <button onclick="abrirModal()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700 shadow-lg shadow-blue-200">+ Nova Ordem</button>
+                    <button onclick="abrirModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-700 shadow-md transition-all">+ NOVA OS</button>
                 </header>
 
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                        <p class="text-gray-400 text-xs font-bold uppercase">Total Encomendas</p>
-                        <h3 id="dashTotalEncomendas" class="text-3xl font-black text-slate-800 mt-1">0</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="bg-white p-4 rounded-xl border border-slate-200">
+                        <p class="text-[10px] text-slate-400 font-bold uppercase">Encomendas</p>
+                        <h3 id="dashTotalEncomendas" class="text-xl font-bold text-slate-800">0</h3>
                     </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                        <p class="text-gray-400 text-xs font-bold uppercase text-red-500">Pendentes (R$)</p>
-                        <h3 id="dashDivida" class="text-3xl font-black text-red-600 mt-1">R$ 0,00</h3>
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 border-l-4 border-l-red-500">
+                        <p class="text-[10px] text-slate-400 font-bold uppercase">A Pagar</p>
+                        <h3 id="dashDivida" class="text-xl font-bold text-red-600">R$ 0,00</h3>
                     </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                        <p class="text-gray-400 text-xs font-bold uppercase">Finalizado (Mês)</p>
-                        <h3 id="dashFat" class="text-3xl font-black text-slate-800 mt-1">R$ 0,00</h3>
+                    <div class="bg-white p-4 rounded-xl border border-slate-200">
+                        <p class="text-[10px] text-slate-400 font-bold uppercase">Faturamento</p>
+                        <h3 id="dashFat" class="text-xl font-bold text-slate-800">R$ 0,00</h3>
                     </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 bg-emerald-50">
-                        <p class="text-emerald-600 text-xs font-bold uppercase">Lucro Líquido</p>
-                        <h3 id="dashLucro" class="text-3xl font-black text-emerald-600 mt-1">R$ 0,00</h3>
+                    <div class="bg-white p-4 rounded-xl border border-emerald-100 bg-emerald-50/50">
+                        <p class="text-[10px] text-emerald-600 font-bold uppercase">Lucro Líquido</p>
+                        <h3 id="dashLucro" class="text-xl font-bold text-emerald-700">R$ 0,00</h3>
                     </div>
                 </div>
 
-                <div class="bg-slate-900 rounded-3xl p-8 text-white relative overflow-hidden shadow-2xl">
-                    <div class="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
-                        <div class="max-w-2xl">
-                            <h4 class="text-xl font-black mb-2 flex items-center gap-2 italic underline decoration-blue-500">
-                                <i class="fa-solid fa-robot"></i> INTELIGÊNCIA ARTIFICIAL
-                            </h4>
-                            <div id="smartAnalysisText" class="text-slate-300 leading-relaxed font-medium">
-                                Analise agora o comportamento dos seus fornecedores e lucros.
-                            </div>
+                <div class="bg-slate-800 rounded-xl p-5 text-white flex items-center justify-between gap-4">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="bg-blue-500 text-[9px] px-1.5 py-0.5 rounded font-bold uppercase">AI Gemini</span>
+                            <h4 class="text-sm font-bold">Insights Estratégicos</h4>
                         </div>
-                        <button onclick="analisarComIA()" class="whitespace-nowrap bg-blue-500 hover:bg-blue-600 text-white px-8 py-4 rounded-2xl font-black transition-all transform hover:scale-105">
-                            ANALISAR AGORA
-                        </button>
+                        <p id="smartAnalysisText" class="text-slate-400 text-xs leading-relaxed italic">Clique ao lado para processar o relatório financeiro...</p>
                     </div>
+                    <button onclick="analisarComIA()" class="bg-white text-slate-800 px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-50 transition-all shrink-0">
+                        <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> ANALISAR
+                    </button>
                 </div>
 
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-gray-50 text-gray-400 text-[10px] uppercase font-black tracking-tighter">
-                                <th class="px-6 py-4">ID/OS</th>
-                                <th class="px-6 py-4">Fornecedor</th>
-                                <th class="px-6 py-4">Descrição</th>
-                                <th class="px-6 py-4">Data</th>
-                                <th class="px-6 py-4">Valor</th>
-                                <th class="px-6 py-4">Status</th>
-                                <th class="px-6 py-4 text-center">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabelaDashboard" class="text-sm divide-y divide-gray-100"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div id="view-relatorios" class="view-section space-y-6">
-                <header class="flex justify-between items-center">
-                    <h2 class="text-2xl font-extrabold text-slate-800">Financeiro / Fornecedores</h2>
-                    <div class="flex gap-2">
-                        <button onclick="exportarPDFRelatorio()" class="bg-red-500 text-white px-4 py-2 rounded-lg font-bold text-xs"><i class="fa-solid fa-file-pdf"></i> PDF PENDÊNCIAS</button>
+                <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                    <div class="p-3 bg-slate-50 border-b text-[11px] font-bold text-slate-500 uppercase tracking-wider flex justify-between items-center">
+                        Atividades Recentes
+                        <input type="text" placeholder="Filtrar..." class="p-1 px-2 border rounded-md font-normal lowercase w-40 outline-none focus:border-blue-400">
                     </div>
-                </header>
-
-                <div class="flex gap-2 bg-white p-2 rounded-xl border border-gray-100 inline-flex no-print">
-                    <button class="px-6 py-2 rounded-lg font-bold text-sm tab-btn-forn active bg-blue-600 text-white" onclick="filtrarRelatorio('Aracruz', this)">Aracruz</button>
-                    <button class="px-6 py-2 rounded-lg font-bold text-sm tab-btn-forn text-gray-500 hover:bg-gray-50" onclick="filtrarRelatorio('Colatina', this)">Colatina</button>
-                    <button class="px-6 py-2 rounded-lg font-bold text-sm tab-btn-forn text-gray-500 hover:bg-gray-50" onclick="filtrarRelatorio('Outros', this)">Outros</button>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-                    <div class="bg-white p-8 rounded-2xl shadow-sm border-l-8 border-red-500">
-                        <p class="text-gray-400 font-bold text-xs uppercase">Saldo em Aberto (Neste Fornecedor)</p>
-                        <h3 id="repAberto" class="text-4xl font-black text-red-600 mt-2">R$ 0,00</h3>
-                        <button onclick="abrirModalGlobalPagto()" class="mt-6 w-full bg-emerald-600 text-white py-3 rounded-xl font-bold hover:bg-emerald-700 transition">EFETUAR PAGAMENTO</button>
-                    </div>
-                    
-                    <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-                         <h4 class="font-bold text-slate-800 mb-4 text-sm uppercase">Total Investido (Histórico)</h4>
-                         <div id="resumoHistoricoForn" class="space-y-2">
-                             </div>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <table class="w-full text-left">
-                        <thead>
-                            <tr class="bg-gray-50 text-gray-400 text-[10px] uppercase font-black border-b">
-                                <th class="px-6 py-4">Data</th>
-                                <th class="px-6 py-4">Descrição</th>
-                                <th class="px-6 py-4">Custo</th>
-                                <th class="px-6 py-4">Pago</th>
-                                <th class="px-6 py-4">Restante</th>
-                                <th class="px-6 py-4">Pagamentos</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabelaRelatorio" class="text-sm divide-y divide-gray-100"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div id="view-pesquisa" class="view-section space-y-6">
-                <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-                    <h3 class="text-xl font-bold text-slate-800 mb-4 italic">Localizador de Preços Histórico</h3>
-                    <div class="flex gap-4 mb-6">
-                        <input type="text" id="inputBuscaPeca" placeholder="Digite o modelo (Ex: iPhone 11, Tela G52...)" class="flex-1 p-4 border-2 border-gray-100 rounded-2xl focus:border-blue-500 outline-none">
-                        <button onclick="pesquisarEAnalisar()" class="bg-slate-900 text-white px-8 py-4 rounded-2xl font-black flex items-center gap-2">
-                            <i class="fa-solid fa-brain"></i> ANALISAR MERCADO
-                        </button>
-                    </div>
-                    <div id="aiSearchInsight" class="hidden p-6 bg-blue-50 border border-blue-100 rounded-3xl text-blue-900 text-sm mb-6 leading-loose"></div>
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left">
-                            <tbody id="resultadoBuscaPeca" class="text-sm divide-y divide-gray-100"></tbody>
+                        <table class="w-full compact-table">
+                            <thead class="bg-slate-50/50 border-b">
+                                <tr class="text-left text-[10px] text-slate-400 uppercase font-bold">
+                                    <th>ID/OS</th>
+                                    <th>Fornecedor</th>
+                                    <th>Modelo</th>
+                                    <th>Data</th>
+                                    <th>Venda</th>
+                                    <th>Status</th>
+                                    <th class="text-center">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabelaDashboard" class="text-xs divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-relatorios" class="view-section space-y-4">
+                <div class="flex justify-between items-center">
+                    <div class="flex gap-1 p-1 bg-slate-200 rounded-lg">
+                        <button class="px-4 py-1.5 rounded-md text-xs font-bold tab-btn-forn active bg-white shadow-sm" onclick="filtrarRelatorio('Aracruz', this)">Aracruz</button>
+                        <button class="px-4 py-1.5 rounded-md text-xs font-bold tab-btn-forn text-slate-500" onclick="filtrarRelatorio('Colatina', this)">Colatina</button>
+                    </div>
+                    <button onclick="exportarPDFRelatorio()" class="bg-slate-800 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase"><i class="fa-solid fa-file-pdf mr-1 text-red-400"></i> Exportar Pendências</button>
+                </div>
+                
+                <div class="bg-white p-5 rounded-xl border flex justify-between items-center">
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase">Saldo Pendente</p>
+                        <h3 id="repAberto" class="text-2xl font-black text-red-600">R$ 0,00</h3>
+                    </div>
+                    <button onclick="abrirModalGlobalPagto()" class="bg-emerald-600 text-white px-5 py-2 rounded-lg text-xs font-bold hover:bg-emerald-700">Pagar Peças</button>
+                </div>
+
+                <div class="bg-white rounded-xl border overflow-hidden shadow-sm">
+                    <table class="w-full compact-table">
+                        <thead class="bg-slate-50 text-[10px] text-slate-400 uppercase">
+                            <tr>
+                                <th>Data</th>
+                                <th>OS/Modelo</th>
+                                <th>Custo</th>
+                                <th>Pago</th>
+                                <th>Saldo</th>
+                                <th>Histórico</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaRelatorio" class="text-xs divide-y"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="view-pesquisa" class="view-section space-y-4">
+                <div class="bg-white p-5 rounded-xl border">
+                    <div class="flex gap-2 max-w-xl mx-auto">
+                        <input type="text" id="inputBuscaPeca" placeholder="Modelo do aparelho..." class="flex-1 p-2 border rounded-lg outline-none focus:border-blue-500 text-sm">
+                        <button onclick="pesquisarEAnalisar()" class="bg-slate-800 text-white px-5 rounded-lg text-xs font-bold uppercase flex items-center gap-2">
+                            <i class="fa-solid fa-search"></i> Buscar
+                        </button>
+                    </div>
+                    <div id="aiSearchInsight" class="hidden mt-4 p-4 bg-blue-50 border-blue-100 rounded-lg text-blue-800 text-xs italic"></div>
+                    <div class="mt-6">
+                        <table class="w-full text-left text-xs">
+                            <tbody id="resultadoBuscaPeca" class="divide-y"></tbody>
                         </table>
                     </div>
                 </div>
@@ -190,36 +180,58 @@
         </main>
     </div>
 
-    <div id="modalRegistro" class="modal fixed inset-0 z-[4000] hidden items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-        <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden">
-            <div class="bg-blue-600 p-6 text-white flex justify-between items-center">
-                <h3 class="text-xl font-black uppercase italic">Detalhes da Ordem</h3>
-                <button onclick="fecharModais()"><i class="fa-solid fa-xmark text-2xl"></i></button>
+    <div id="modalRegistro" class="modal fixed inset-0 z-[6000] hidden items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+        <div class="bg-white w-full max-w-lg rounded-xl shadow-2xl overflow-hidden">
+            <div class="p-4 border-b flex justify-between items-center bg-slate-50">
+                <h3 class="font-bold text-slate-700">Nova Ordem / Detalhes</h3>
+                <button onclick="fecharModais()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <form id="formOS" class="p-8 space-y-6">
+            <form id="formOS" class="p-6 grid grid-cols-2 gap-4">
                 <input type="hidden" id="editId">
-                <div class="grid grid-cols-2 gap-6">
-                    <div class="col-span-2"><label class="text-[10px] font-black uppercase text-gray-400">Modelo / Descrição</label><input type="text" id="modelo" class="w-full p-3 bg-gray-50 rounded-xl outline-none" required></div>
-                    <div><label class="text-[10px] font-black uppercase text-gray-400">Data</label><input type="date" id="data" class="w-full p-3 bg-gray-50 rounded-xl outline-none" required></div>
-                    <div><label class="text-[10px] font-black uppercase text-gray-400">Número OS</label><input type="number" id="os" class="w-full p-3 bg-gray-50 rounded-xl outline-none" required></div>
-                    <div><label class="text-[10px] font-black uppercase text-gray-400">Fornecedor</label><select id="fornecedor" class="w-full p-3 bg-gray-50 rounded-xl outline-none"><option value="Aracruz">Aracruz</option><option value="Colatina">Colatina</option><option value="Outros">Outros</option></select></div>
-                    <div><label class="text-[10px] font-black uppercase text-gray-400">Status</label><select id="status" class="w-full p-3 bg-gray-50 rounded-xl outline-none"><option value="ENCOMENDA">📦 ENCOMENDA</option><option value="FINALIZADO">✅ FINALIZADO</option><option value="DEVOLUÇÃO">🔙 DEVOLUÇÃO</option></select></div>
-                    <div><label class="text-[10px] font-black uppercase text-gray-400">Custo Peça (R$)</label><input type="number" id="valorPeca" class="w-full p-3 bg-gray-50 rounded-xl outline-none" step="0.01"></div>
-                    <div><label class="text-[10px] font-black uppercase text-gray-400">Venda Cliente (R$)</label><input type="number" id="valorOS" class="w-full p-3 bg-gray-50 rounded-xl outline-none" step="0.01"></div>
+                <div class="col-span-2">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Modelo / Descrição</label>
+                    <input type="text" id="modelo" class="w-full p-2 border rounded-lg outline-none focus:ring-1 focus:ring-blue-500" required>
                 </div>
-                <div class="flex justify-end gap-3 pt-6 border-t"><button type="button" onclick="fecharModais()" class="px-6 py-2 text-gray-500 font-bold uppercase">Cancelar</button><button type="submit" class="px-10 py-3 bg-blue-600 text-white rounded-xl font-black shadow-lg shadow-blue-100">SALVAR DADOS</button></div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Data</label>
+                    <input type="date" id="data" class="w-full p-2 border rounded-lg outline-none" required>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Número OS</label>
+                    <input type="number" id="os" class="w-full p-2 border rounded-lg outline-none" required>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Fornecedor</label>
+                    <select id="fornecedor" class="w-full p-2 border rounded-lg"><option value="Aracruz">Aracruz</option><option value="Colatina">Colatina</option><option value="Outros">Outros</option></select>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Status</label>
+                    <select id="status" class="w-full p-2 border rounded-lg"><option value="ENCOMENDA">📦 ENCOMENDA</option><option value="FINALIZADO">✅ FINALIZADO</option><option value="DEVOLUÇÃO">🔙 DEVOLUÇÃO</option></select>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Custo (R$)</label>
+                    <input type="number" id="valorPeca" class="w-full p-2 border rounded-lg" step="0.01">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Venda (R$)</label>
+                    <input type="number" id="valorOS" class="w-full p-2 border rounded-lg" step="0.01">
+                </div>
+                <div class="col-span-2 pt-4 flex justify-end gap-2 border-t">
+                    <button type="button" onclick="fecharModais()" class="px-4 py-2 text-xs font-bold text-slate-500 uppercase">Cancelar</button>
+                    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg text-xs font-bold uppercase hover:bg-blue-700">Salvar OS</button>
+                </div>
             </form>
         </div>
     </div>
 
-    <div id="modalPagamentoGlobal" class="modal fixed inset-0 z-[4000] hidden items-center justify-center bg-slate-900/50 p-4">
-        <div class="bg-white w-full max-w-md rounded-2xl p-8">
-            <h3 class="text-xl font-black mb-4">PAGAR: <span id="pagtoFornName" class="text-blue-600"></span></h3>
-            <form id="formGlobalPagto" class="space-y-4">
-                <div><label class="text-xs font-bold text-gray-400 uppercase">Valor do Pagamento (R$)</label><input type="number" id="gpValor" class="w-full p-3 border rounded-xl" step="0.01" required></div>
-                <div><label class="text-xs font-bold text-gray-400 uppercase">Forma</label><input type="text" id="gpForma" class="w-full p-3 border rounded-xl" placeholder="Ex: Pix Nubank" required></div>
-                <div><label class="text-xs font-bold text-gray-400 uppercase">Data</label><input type="date" id="gpData" class="w-full p-3 border rounded-xl" required></div>
-                <div class="flex justify-end gap-3 mt-6"><button type="button" onclick="fecharModais()" class="px-4 py-2">Cancelar</button><button type="submit" class="px-8 py-3 bg-emerald-600 text-white rounded-xl font-black">CONFIRMAR</button></div>
+    <div id="modalPagamentoGlobal" class="modal fixed inset-0 z-[6000] hidden items-center justify-center bg-slate-900/40 p-4">
+        <div class="bg-white w-full max-w-xs rounded-xl p-6">
+            <h3 class="font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-wallet text-emerald-500"></i> Pagar <span id="pagtoFornName"></span></h3>
+            <form id="formGlobalPagto" class="space-y-3">
+                <input type="number" id="gpValor" class="w-full p-2 border rounded-lg text-sm" step="0.01" required placeholder="Valor R$">
+                <input type="text" id="gpForma" class="w-full p-2 border rounded-lg text-sm" placeholder="Forma (ex: Pix)" required>
+                <input type="date" id="gpData" class="w-full p-2 border rounded-lg text-sm" required>
+                <div class="flex gap-2 pt-2"><button type="button" onclick="fecharModais()" class="flex-1 text-xs font-bold py-2 border rounded-lg">Voltar</button><button type="submit" class="flex-1 bg-emerald-600 text-white text-xs font-bold py-2 rounded-lg hover:bg-emerald-700 transition-all">Pagar</button></div>
             </form>
         </div>
     </div>
@@ -227,7 +239,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy, arrayUnion } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
     import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
 
     const firebaseConfig = {
@@ -242,51 +254,43 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
-    const genAI = new GoogleGenerativeAI("AIzaSyC3fWcR4LCzhaQGVf2upS2lNW7yXpoI0_A");
+    const genAI = new GoogleGenerativeAI("AIzaSyDCy3mPyBKhVKt8tY2NHcEnyJ9YaqpgbLA");
 
     let todosDados = [];
     let tabAtual = 'Aracruz';
 
-    // AUTH OBSERVER
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            document.getElementById('auth-screen').classList.add('hidden');
-            document.getElementById('app-content').classList.remove('hidden');
-            document.getElementById('displayUserName').innerText = user.displayName || user.email;
-            carregarDados();
-        } else {
-            document.getElementById('auth-screen').classList.remove('hidden');
-            document.getElementById('app-content').classList.add('hidden');
-        }
+    // AUTH
+    onAuthStateChanged(auth, (u) => {
+        const screen = document.getElementById('auth-screen');
+        const content = document.getElementById('app-content');
+        if(u) { screen.classList.add('hidden'); content.classList.remove('hidden'); document.getElementById('displayUserName').innerText = u.displayName || u.email; carregarDados(); }
+        else { screen.classList.remove('hidden'); content.classList.add('hidden'); }
     });
 
     async function carregarDados() {
         const q = query(collection(db, "controle_os"), orderBy("data", "desc"));
         const snapshot = await getDocs(q);
-        todosDados = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        
+        todosDados = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
         atualizarDashboard();
-        renderizarTabelaAgrupada();
-        if(document.getElementById('view-relatorios').classList.contains('active')) filtrarRelatorio(tabAtual);
+        renderizarTabelaPrincipal();
     }
 
     function atualizarDashboard() {
         let fat=0, luc=0, div=0, enc=0;
         const hoje = new Date();
         todosDados.forEach(i => {
-            const custo = parseFloat(i.valorPeca) || 0;
-            const venda = parseFloat(i.valorOS) || 0;
-            let pagoForn = 0;
-            if(i.historicoPagamentos) i.historicoPagamentos.forEach(p => pagoForn += parseFloat(p.valor));
+            const vCusto = parseFloat(i.valorPeca) || 0;
+            const vVenda = parseFloat(i.valorOS) || 0;
+            let jaPago = 0;
+            if(i.historicoPagamentos) i.historicoPagamentos.forEach(p => jaPago += parseFloat(p.valor));
 
             if(i.status === 'ENCOMENDA' || i.status === 'FINALIZADO') {
-                div += Math.max(0, custo - pagoForn);
+                div += Math.max(0, vCusto - jaPago);
                 if(i.status === 'ENCOMENDA') enc++;
             }
             const dt = new Date(i.data + "T12:00:00");
             if(dt.getMonth() === hoje.getMonth() && i.status === 'FINALIZADO') {
-                fat += venda;
-                luc += (venda - custo);
+                fat += vVenda; luc += (vVenda - vCusto);
             }
         });
         document.getElementById('dashTotalEncomendas').innerText = enc;
@@ -295,231 +299,143 @@
         document.getElementById('dashLucro').innerText = fmtMoeda(luc);
     }
 
-    function renderizarTabelaAgrupada() {
+    function renderizarTabelaPrincipal() {
         const tbody = document.getElementById('tabelaDashboard');
         tbody.innerHTML = '';
         let mesRef = "";
         todosDados.forEach(i => {
             const dt = new Date(i.data + "T12:00:00");
-            const mesAno = dt.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }).toUpperCase();
+            const mesAno = dt.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' }).toUpperCase();
             if(mesAno !== mesRef) {
                 mesRef = mesAno;
-                tbody.innerHTML += `<tr class="bg-gray-50"><td colspan="7" class="px-6 py-2 text-[10px] font-black text-gray-400 italic">${mesAno}</td></tr>`;
+                tbody.innerHTML += `<tr class="bg-slate-50/80"><td colspan="7" class="px-4 py-1 text-[9px] font-black text-slate-400 tracking-widest">${mesAno}</td></tr>`;
             }
-            const statusColor = i.status === 'FINALIZADO' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700';
+            const sCol = i.status === 'FINALIZADO' ? 'text-emerald-600' : 'text-blue-500';
             tbody.innerHTML += `
-                <tr class="hover:bg-gray-50 transition">
-                    <td class="px-6 py-4 font-bold text-slate-700">#${i.os}</td>
-                    <td class="px-6 py-4 text-gray-500">${i.fornecedor}</td>
-                    <td class="px-6 py-4 font-medium">${i.modelo}</td>
-                    <td class="px-6 py-4 text-gray-500 text-xs">${dt.toLocaleDateString()}</td>
-                    <td class="px-6 py-4 font-bold text-slate-900">${fmtMoeda(i.valorOS)}</td>
-                    <td class="px-6 py-4"><span class="px-2 py-1 rounded-lg text-[9px] font-black uppercase ${statusColor}">${i.status}</span></td>
-                    <td class="px-6 py-4 text-center space-x-3">
-                        <button onclick="editarItem('${i.id}')" class="text-blue-500"><i class="fa-solid fa-pen"></i></button>
-                        <button onclick="deletarItem('${i.id}')" class="text-red-400"><i class="fa-solid fa-trash"></i></button>
+                <tr class="hover:bg-slate-50 transition border-b border-slate-50">
+                    <td class="font-bold text-slate-700">#${i.os}</td>
+                    <td class="text-slate-400">${i.fornecedor}</td>
+                    <td class="font-medium">${i.modelo}</td>
+                    <td class="text-slate-400">${dt.toLocaleDateString()}</td>
+                    <td class="font-bold">${fmtMoeda(i.valorOS)}</td>
+                    <td><span class="font-bold uppercase text-[9px] ${sCol}">${i.status}</span></td>
+                    <td class="text-center space-x-2">
+                        <button onclick="editarItem('${i.id}')" class="text-slate-300 hover:text-blue-500"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="deletarItem('${i.id}')" class="text-slate-300 hover:text-red-500"><i class="fa-solid fa-trash"></i></button>
                     </td>
                 </tr>`;
         });
     }
 
-    // RELATÓRIO FINANCEIRO (LÓGICA ANTERIOR)
+    // IA GEMINI
+    window.analisarComIA = async () => {
+        const out = document.getElementById('smartAnalysisText');
+        out.innerHTML = "<i class='fa-solid fa-spinner fa-spin mr-1'></i> IA lendo dados...";
+        try {
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const prompt = `Analise: ${JSON.stringify(todosDados.slice(0,10))}. Me dê 2 insights financeiros curtos em Português sobre lucro e fornecedores. Seja direto. Use HTML <b>.`;
+            const res = await model.generateContent(prompt);
+            out.innerHTML = res.response.text();
+        } catch(e) { out.innerText = "IA indisponível no momento."; }
+    };
+
+    // FORNECEDORES (Relatório)
     window.filtrarRelatorio = (forn, btn) => {
         tabAtual = forn;
-        if(btn) {
-            document.querySelectorAll('.tab-btn-forn').forEach(b => b.classList.remove('active', 'bg-blue-600', 'text-white'));
-            btn.classList.add('active', 'bg-blue-600', 'text-white');
-        }
-        const tbody = document.getElementById('tabelaRelatorio');
-        tbody.innerHTML = '';
-        let totalAberto = 0;
-        const dadosF = todosDados.filter(i => i.fornecedor === forn);
+        document.querySelectorAll('.tab-btn-forn').forEach(b => b.className = "px-4 py-1.5 rounded-md text-xs font-bold tab-btn-forn text-slate-500");
+        if(btn) btn.className = "px-4 py-1.5 rounded-md text-xs font-bold tab-btn-forn active bg-white shadow-sm text-blue-600";
         
-        dadosF.forEach(i => {
+        const tbody = document.getElementById('tabelaRelatorio');
+        tbody.innerHTML = ''; let totalAberto = 0;
+        
+        todosDados.filter(i => i.fornecedor === forn).forEach(i => {
             const custo = parseFloat(i.valorPeca) || 0;
-            let pago = 0;
-            let histHtml = '';
-            if(i.historicoPagamentos) {
-                i.historicoPagamentos.forEach(p => {
-                    pago += parseFloat(p.valor);
-                    histHtml += `<div class="text-[9px] text-gray-400">${fmtData(p.data)}: ${fmtMoeda(p.valor)}</div>`;
-                });
-            }
+            let pago = 0; if(i.historicoPagamentos) i.historicoPagamentos.forEach(p => pago += parseFloat(p.valor));
             const resto = Math.max(0, custo - pago);
             if(i.status !== 'DEVOLUÇÃO') totalAberto += resto;
 
             tbody.innerHTML += `
-                <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-4 text-xs">${fmtData(i.data)}</td>
-                    <td class="px-6 py-4 font-bold text-xs">#${i.os} - ${i.modelo}</td>
-                    <td class="px-6 py-4 font-medium">${fmtMoeda(custo)}</td>
-                    <td class="px-6 py-4 text-emerald-600 font-bold">${fmtMoeda(pago)}</td>
-                    <td class="px-6 py-4 text-red-500 font-black">${fmtMoeda(resto)}</td>
-                    <td class="px-6 py-4">${histHtml || '-'}</td>
+                <tr class="hover:bg-slate-50">
+                    <td class="text-slate-400">${fmtData(i.data)}</td>
+                    <td class="font-bold italic">#${i.os} - ${i.modelo}</td>
+                    <td>${fmtMoeda(custo)}</td>
+                    <td class="text-emerald-600 font-medium">${fmtMoeda(pago)}</td>
+                    <td class="text-red-500 font-bold">${fmtMoeda(resto)}</td>
+                    <td class="text-[10px] text-slate-400">${i.historicoPagamentos ? i.historicoPagamentos.length + ' pgto(s)' : '-'}</td>
                 </tr>`;
         });
         document.getElementById('repAberto').innerText = fmtMoeda(totalAberto);
     };
 
-    window.analisarComIA = async () => {
-    const area = document.getElementById('smartAnalysisText');
-    const btn = event.currentTarget;
-    
-    // Validação de segurança
-    if (genAI.apiKey === "AIzaSyC3fWcR4LCzhaQGVf2upS2lNW7yXpoI0_A" || !genAI.apiKey) {
-        area.innerHTML = "<span class='text-red-500 font-bold'>Erro: Chave de API não configurada. Obtenha uma em aistudio.google.com</span>";
-        return;
-    }
-
-    btn.disabled = true;
-    area.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> O Gemini está revisando suas contas...';
-    
-    try {
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-        
-        // Dados formatados para a IA
-        const resumoFinanceiro = todosDados.slice(0, 15).map(i => ({
-            peca: i.modelo,
-            custo: i.valorPeca,
-            venda: i.valorOS,
-            status: i.status,
-            fornecedor: i.fornecedor
-        }));
-
-        const prompt = `
-            Você é um consultor financeiro para uma assistência técnica de celulares.
-            Analise estes dados recentes: ${JSON.stringify(resumoFinanceiro)}.
-            Me dê 3 insights rápidos e profissionais em português sobre:
-            1. Margem de lucro média.
-            2. Qual fornecedor parece mais confiável.
-            3. Um aviso sobre peças em "ENCOMENDA".
-            Use HTML <b> para destacar pontos chave. Seja direto.
-        `;
-
-        const result = await model.generateContent(prompt);
-        const text = result.response.text();
-        
-        area.innerHTML = `<div class="animate-fadeIn">${text}</div>`;
-        
-    } catch(e) {
-        console.error("Erro detalhado:", e);
-        area.innerHTML = `<span class="text-red-400">Erro técnico: ${e.message}. Verifique o console (F12).</span>`;
-    } finally {
-        btn.disabled = false;
-    }
-};
-
-    // PESQUISA DE PEÇAS
+    // PESQUISA
     window.pesquisarEAnalisar = async () => {
         const termo = document.getElementById('inputBuscaPeca').value.toLowerCase();
-        const tabela = document.getElementById('resultadoBuscaPeca');
-        const insight = document.getElementById('aiSearchInsight');
+        const tbody = document.getElementById('resultadoBuscaPeca');
         if(!termo) return;
-        const res = todosDados.filter(i => i.modelo.toLowerCase().includes(termo)).sort((a,b) => new Date(b.data) - new Date(a.data));
-        tabela.innerHTML = res.map(i => `
-            <tr>
-                <td class="py-4 text-gray-400 text-xs">${fmtData(i.data)}</td>
-                <td class="py-4 font-black">${i.fornecedor}</td>
-                <td class="py-4 font-bold text-blue-600 text-right">${fmtMoeda(i.valorPeca)}</td>
+        const res = todosDados.filter(i => i.modelo.toLowerCase().includes(termo));
+        tbody.innerHTML = res.map(i => `
+            <tr class="hover:bg-slate-50">
+                <td class="py-2 text-slate-400">${fmtData(i.data)}</td>
+                <td class="py-2 font-bold">${i.fornecedor}</td>
+                <td class="py-2 text-right font-black text-blue-600">${fmtMoeda(i.valorPeca)}</td>
             </tr>
         `).join('');
-        if(res.length > 0) {
-            insight.classList.remove('hidden');
-            insight.innerHTML = 'Analisando preços...';
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-            const p = `Historico: ${JSON.stringify(res.map(r => ({f:r.fornecedor, p:r.valorPeca}))) }. Resuma qual fornecedor tem o melhor preço para "${termo}" e se o valor está subindo.`;
-            const r = await model.generateContent(p);
-            insight.innerHTML = `<i class="fa-solid fa-lightbulb"></i> IA: ${r.response.text()}`;
-        }
     };
 
     // CRUD ACTIONS
     window.editarItem = (id) => {
-        const item = todosDados.find(i => i.id === id);
-        if(!item) return;
+        const i = todosDados.find(x => x.id === id); if(!i) return;
         document.getElementById('editId').value = id;
-        document.getElementById('modelo').value = item.modelo;
-        document.getElementById('data').value = item.data;
-        document.getElementById('os').value = item.os;
-        document.getElementById('fornecedor').value = item.fornecedor;
-        document.getElementById('status').value = item.status;
-        document.getElementById('valorPeca').value = item.valorPeca;
-        document.getElementById('valorOS').value = item.valorOS;
-        document.getElementById('modalRegistro').style.display = 'flex';
+        document.getElementById('modelo').value = i.modelo; document.getElementById('data').value = i.data;
+        document.getElementById('os').value = i.os; document.getElementById('fornecedor').value = i.fornecedor;
+        document.getElementById('status').value = i.status; document.getElementById('valorPeca').value = i.valorPeca;
+        document.getElementById('valorOS').value = i.valorOS; document.getElementById('modalRegistro').style.display = 'flex';
     };
 
-    window.deletarItem = async (id) => {
-        if(confirm("Excluir?")) { await deleteDoc(doc(db, "controle_os", id)); carregarDados(); }
-    };
+    window.deletarItem = async (id) => { if(confirm("Apagar?")) { await deleteDoc(doc(db, "controle_os", id)); carregarDados(); } };
 
     document.getElementById('formOS').addEventListener('submit', async (e) => {
         e.preventDefault();
         const id = document.getElementById('editId').value;
         const d = {
-            modelo: document.getElementById('modelo').value,
-            data: document.getElementById('data').value,
-            os: document.getElementById('os').value,
-            fornecedor: document.getElementById('fornecedor').value,
-            status: document.getElementById('status').value,
-            valorPeca: parseFloat(document.getElementById('valorPeca').value) || 0,
-            valorOS: parseFloat(document.getElementById('valorOS').value) || 0
+            modelo: document.getElementById('modelo').value, data: document.getElementById('data').value,
+            os: document.getElementById('os').value, fornecedor: document.getElementById('fornecedor').value,
+            status: document.getElementById('status').value, valorPeca: parseFloat(document.getElementById('valorPeca').value)||0,
+            valorOS: parseFloat(document.getElementById('valorOS').value)||0
         };
-        if(id) await updateDoc(doc(db, "controle_os", id), d);
-        else await addDoc(collection(db, "controle_os"), d);
+        id ? await updateDoc(doc(db, "controle_os", id), d) : await addDoc(collection(db, "controle_os"), d);
         fecharModais(); carregarDados();
     });
 
     // PAGAMENTO GLOBAL
-    window.abrirModalGlobalPagto = () => {
-        document.getElementById('pagtoFornName').innerText = tabAtual;
-        document.getElementById('gpData').valueAsDate = new Date();
-        document.getElementById('modalPagamentoGlobal').style.display = 'flex';
-    };
-
+    window.abrirModalGlobalPagto = () => { document.getElementById('pagtoFornName').innerText = tabAtual; document.getElementById('modalPagamentoGlobal').style.display = 'flex'; };
     document.getElementById('formGlobalPagto').addEventListener('submit', async (e) => {
         e.preventDefault();
-        let valorRestante = parseFloat(document.getElementById('gpValor').value);
-        const forma = document.getElementById('gpForma').value;
-        const dataPg = document.getElementById('gpData').value;
-        const pendentes = todosDados.filter(i => i.fornecedor === tabAtual && (i.status === 'ENCOMENDA' || i.status === 'FINALIZADO'))
-                                    .sort((a,b) => new Date(a.data) - new Date(b.data));
-        for(const item of pendentes) {
-            if(valorRestante <= 0) break;
-            const custo = parseFloat(item.valorPeca) || 0;
-            let jaPago = 0;
-            if(item.historicoPagamentos) item.historicoPagamentos.forEach(p => jaPago += parseFloat(p.valor));
-            const divida = custo - jaPago;
-            if(divida > 0) {
-                const pagarAgora = Math.min(divida, valorRestante);
-                await updateDoc(doc(db, "controle_os", item.id), { 
-                    historicoPagamentos: arrayUnion({ valor: pagarAgora, forma: forma, data: dataPg }) 
-                });
-                valorRestante -= pagarAgora;
-            }
+        let val = parseFloat(document.getElementById('gpValor').value);
+        const pen = todosDados.filter(i => i.fornecedor === tabAtual && (i.status === 'ENCOMENDA' || i.status === 'FINALIZADO')).sort((a,b) => new Date(a.data) - new Date(b.data));
+        for(const i of pen) {
+            if(val <= 0) break;
+            const custo = parseFloat(i.valorPeca)||0; let pago = 0; if(i.historicoPagamentos) i.historicoPagamentos.forEach(p => pago += parseFloat(p.valor));
+            const div = custo - pago;
+            if(div > 0) { const pNow = Math.min(div, val); await updateDoc(doc(db, "controle_os", i.id), { historicoPagamentos: arrayUnion({ valor: pNow, forma: document.getElementById('gpForma').value, data: document.getElementById('gpData').value }) }); val -= pNow; }
         }
         fecharModais(); carregarDados();
     });
 
-    // UI HELPERS
+    // UTILS
     window.mudarVisao = (v, btn) => {
         document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
         document.getElementById('view-'+v).classList.add('active');
-        document.querySelectorAll('nav a').forEach(a => a.className = "flex items-center px-6 py-4 gap-3 text-gray-600 hover:bg-gray-50 font-medium transition-all");
-        btn.className = "sidebar-item-active flex items-center px-6 py-4 gap-3 font-medium transition-all";
+        document.querySelectorAll('nav a').forEach(a => a.className = "flex items-center px-5 py-3 gap-3 text-slate-500 hover:bg-slate-50 text-sm transition-all");
+        btn.className = "sidebar-active flex items-center px-5 py-3 gap-3 font-medium text-sm transition-all";
         if(v === 'relatorios') filtrarRelatorio(tabAtual);
     };
 
     window.exportarPDFRelatorio = () => {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        doc.text(`Relatório Pendências: ${tabAtual}`, 10, 10);
-        const col = ["Data", "OS", "Modelo", "Custo", "Falta"];
-        const rows = todosDados.filter(i => i.fornecedor === tabAtual).map(i => {
-             let pago = 0;
-             if(i.historicoPagamentos) i.historicoPagamentos.forEach(p => pago += parseFloat(p.valor));
-             return [fmtData(i.data), i.os, i.modelo, fmtMoeda(i.valorPeca), fmtMoeda(i.valorPeca - pago)];
-        }).filter(r => r[4] !== "R$ 0,00");
-        doc.autoTable({ head: [col], body: rows, startY: 20 });
+        const { jsPDF } = window.jspdf; const doc = new jsPDF();
+        doc.setFontSize(14); doc.text(`Relatório de Pendências: ${tabAtual}`, 14, 20);
+        const rows = todosDados.filter(i => i.fornecedor === tabAtual).map(i => [fmtData(i.data), i.os, i.modelo, fmtMoeda(i.valorPeca)]);
+        doc.autoTable({ head: [["Data", "OS", "Modelo", "Valor"]], body: rows, startY: 25, theme: 'grid', styles: { fontSize: 8 } });
         doc.save(`Pendencias_${tabAtual}.pdf`);
     };
 
