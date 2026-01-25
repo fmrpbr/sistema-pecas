@@ -361,18 +361,53 @@
         document.getElementById('repAberto').innerText = fmtMoeda(totalAberto);
     };
 
-    // IA GEMINI - ANÁLISE GERAL
     window.analisarComIA = async () => {
-        const area = document.getElementById('smartAnalysisText');
-        area.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Gemini consultando dados...';
-        try {
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-            const resumo = todosDados.slice(0, 15).map(i => ({ f: i.fornecedor, v: i.valorPeca, s: i.status }));
-            const prompt = `Analise estes dados de assistência técnica: ${JSON.stringify(resumo)}. Me dê 3 sugestões curtas de gestão em português. Seja sarcástico mas profissional. Use <b>.`;
-            const result = await model.generateContent(prompt);
-            area.innerHTML = result.response.text();
-        } catch(e) { area.innerText = "Erro ao processar IA."; }
-    };
+    const area = document.getElementById('smartAnalysisText');
+    const btn = event.currentTarget;
+    
+    // Validação de segurança
+    if (genAI.apiKey === "AIzaSyC3fWcR4LCzhaQGVf2upS2lNW7yXpoI0_A" || !genAI.apiKey) {
+        area.innerHTML = "<span class='text-red-500 font-bold'>Erro: Chave de API não configurada. Obtenha uma em aistudio.google.com</span>";
+        return;
+    }
+
+    btn.disabled = true;
+    area.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> O Gemini está revisando suas contas...';
+    
+    try {
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        
+        // Dados formatados para a IA
+        const resumoFinanceiro = todosDados.slice(0, 15).map(i => ({
+            peca: i.modelo,
+            custo: i.valorPeca,
+            venda: i.valorOS,
+            status: i.status,
+            fornecedor: i.fornecedor
+        }));
+
+        const prompt = `
+            Você é um consultor financeiro para uma assistência técnica de celulares.
+            Analise estes dados recentes: ${JSON.stringify(resumoFinanceiro)}.
+            Me dê 3 insights rápidos e profissionais em português sobre:
+            1. Margem de lucro média.
+            2. Qual fornecedor parece mais confiável.
+            3. Um aviso sobre peças em "ENCOMENDA".
+            Use HTML <b> para destacar pontos chave. Seja direto.
+        `;
+
+        const result = await model.generateContent(prompt);
+        const text = result.response.text();
+        
+        area.innerHTML = `<div class="animate-fadeIn">${text}</div>`;
+        
+    } catch(e) {
+        console.error("Erro detalhado:", e);
+        area.innerHTML = `<span class="text-red-400">Erro técnico: ${e.message}. Verifique o console (F12).</span>`;
+    } finally {
+        btn.disabled = false;
+    }
+};
 
     // PESQUISA DE PEÇAS
     window.pesquisarEAnalisar = async () => {
