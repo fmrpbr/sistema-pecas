@@ -2,7 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebas
 import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
 import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
 
-// --- CONFIGURAÇÕES ---
+// --- 1. CONFIGURAÇÕES ---
 const firebaseConfig = {
     apiKey: "AIzaSyCoN6SK7Erhh5f67vGNwuP_cGA_LGeNm4U",
     authDomain: "controledeos-2de2c.firebaseapp.com",
@@ -14,7 +14,7 @@ const firebaseConfig = {
 
 const API_KEY_IA = "AIzaSyCha6XRWgfXY1PxtreksvS_rP4SLBF9nh0";
 
-// --- INICIALIZAÇÃO ---
+// --- 2. INICIALIZAÇÃO ---
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const genAI = new GoogleGenerativeAI(API_KEY_IA);
@@ -22,96 +22,120 @@ const genAI = new GoogleGenerativeAI(API_KEY_IA);
 let dadosLocais = [];
 let meuGrafico = null;
 
-// --- 1. LÓGICA DE DADOS (FIREBASE) ---
+// --- 3. MOTOR DE DADOS (FIREBASE) ---
 async function carregarDados() {
-    const q = query(collection(db, "controle_os"), orderBy("data", "desc"));
-    const snap = await getDocs(q);
-    dadosLocais = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    
-    processarFinancas();
-    renderizarTabela();
-    atualizarGrafico();
+    try {
+        const q = query(collection(db, "controle_os"), orderBy("data", "desc"));
+        const snap = await getDocs(q);
+        dadosLocais = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        processarFinancas();
+        renderizarTabela(); // Certifique-se de que essa função existe no seu HTML
+        atualizarGrafico();
+    } catch (e) {
+        console.error("Erro ao carregar dados:", e);
+    }
 }
 
-// --- 2. CÁLCULOS E PAGAMENTOS PARCELADOS ---
+// --- 4. LÓGICA DE BI E FLUXO DE CAIXA ---
 function processarFinancas() {
     let lucroTotal = 0;
-    let dividaTotal = 0;
-    const fluxoCaixa = { jan: 0, fev: 0, mar: 0, abr: 0 }; // Exemplo para gráfico
+    let comprometidoMesAtual = 0;
+    const hoje = new Date();
+    const mesAtual = hoje.getMonth() + 1;
+    const anoAtual = hoje.getFullYear();
 
     dadosLocais.forEach(os => {
-        const custo = parseFloat(os.valorPeca) || 0;
-        const venda = parseFloat(os.valorOS) || 0;
-        
-        // Lucro real (considerando se foi parcelado)
-        let taxaCartao = 0;
-        if(os.recebimento?.forma1 === 'Crédito') taxaCartao = venda * 0.05; // 5% taxa média
-        
-        lucroTotal += (venda - custo - taxaCartao);
+        // Lucro Bruto: Venda - Custo Total (conforme sua regra)
+        const lucroBruto = (parseFloat(os.valorOS) || 0) - (parseFloat(os.valorPeca) || 0);
+        lucroTotal += lucroBruto;
 
-        if(os.status === 'ENCOMENDA') dividaTotal += custo;
+        // Verifica parcelas de peças que vencem no mês atual
+        if (os.cronogramaForn) {
+            os.cronogramaForn.forEach(parcela => {
+                if (parcela.mes === mesAtual && parcela.ano === anoAtual) {
+                    comprometidoMesAtual += parcela.valor;
+                }
+            });
+        }
     });
 
+    // Atualiza a Interface
     document.getElementById('total-lucro').innerText = fmtMoeda(lucroTotal);
-    document.getElementById('total-divida').innerText = fmtMoeda(dividaTotal);
+    document.getElementById('total-divida').innerText = fmtMoeda(comprometidoMesAtual);
+    
+    // Alimenta a IA com o cenário atual
+    atualizarPromptIA(lucroTotal, comprometidoMesAtual);
 }
 
-// --- 3. GRÁFICOS VISUAIS (CHART.JS) ---
+// --- 5. GRÁFICOS DINÂMICOS (CHART.JS) ---
 function atualizarGrafico() {
     const ctx = document.getElementById('grafico-bi').getContext('2d');
-    if(meuGrafico) meuGrafico.destroy();
+    if (meuGrafico) meuGrafico.destroy();
 
-    // Agrupando dados simples para exemplo
-    const labels = ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4'];
-    const valores = [1200, 1900, 3000, 2500]; // Aqui viria a soma real por data
+    // Criando projeção de compromissos para os próximos 4 meses
+    const hoje = new Date();
+    const labels = [];
+    const valoresComprometidos = [];
+
+    for (let i = 0; i < 4; i++) {
+        const d = new Date();
+        d.setMonth(hoje.getMonth() + i);
+        const m = d.getMonth() + 1;
+        const a = d.getFullYear();
+        
+        labels.push(d.toLocaleDateString('pt-BR', { month: 'short' }).toUpperCase());
+        
+        let somaMes = 0;
+        dadosLocais.forEach(os => {
+            if (os.cronogramaForn) {
+                os.cronogramaForn.forEach(p => {
+                    if (p.mes === m && p.ano === a) somaMes += p.valor;
+                });
+            }
+        });
+        valoresComprometidos.push(somaMes);
+    }
 
     meuGrafico = new Chart(ctx, {
-        type: 'line',
+        type: 'bar',
         data: {
             labels: labels,
             datasets: [{
-                label: 'Lucro Líquido (R$)',
-                data: valores,
-                borderColor: '#2563eb',
-                backgroundColor: 'rgba(37, 99, 235, 0.1)',
-                fill: true,
-                tension: 0.4
+                label: 'Dívida de Peças (R$)',
+                data: valoresComprometidos,
+                backgroundColor: '#ef4444',
+                borderRadius: 8
             }]
         },
-        options: { responsive: true, plugins: { legend: { display: false } } }
+        options: { 
+            responsive: true, 
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } }
+        }
     });
 }
 
-// --- 4. INTEGRAÇÃO IA GEMINI ---
-window.analisarComIA = async () => {
+// --- 6. INTEGRAÇÃO COM IA GEMINI ---
+async function atualizarPromptIA(lucro, dividaMes) {
     const out = document.getElementById('ai-insight');
-    out.innerHTML = "<i class='fa-solid fa-spinner animate-spin'></i> IA processando BI...";
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+    const prompt = `Aja como consultor financeiro de uma assistência técnica. 
+    Dados: Lucro Bruto Total acumulado é ${fmtMoeda(lucro)}. 
+    Compromisso de pagamento de peças NESTE MÊS: ${fmtMoeda(dividaMes)}.
+    Dê um conselho curto e direto sobre a liquidez do caixa para honrar os fornecedores este mês.`;
 
     try {
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-        const resumo = {
-            lucro: document.getElementById('total-lucro').innerText,
-            divida: document.getElementById('total-divida').innerText,
-            totalOS: dadosLocais.length
-        };
-
-        const prompt = `Analise financeiramente os dados dessa assistência técnica: ${JSON.stringify(resumo)}. 
-        Dê um conselho curto para aumentar o lucro líquido.`;
-
         const result = await model.generateContent(prompt);
         out.innerHTML = `<i class="fa-solid fa-robot text-blue-400 mr-2"></i> ${result.response.text()}`;
-    } catch (e) {
-        out.innerHTML = "Erro ao conectar com a IA. Verifique as restrições da chave.";
+    } catch (e) { 
+        console.error("Erro IA:", e);
+        out.innerHTML = "IA aguardando dados...";
     }
-};
+}
 
-// --- AUXILIARES ---
-const fmtMoeda = (v) => v.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
-
-// Iniciar
-carregarDados();
-// ... (mantenha as configurações de Firebase e IA acima)
-
+// --- 7. EVENTO DE SALVAMENTO (NOVA OS) ---
 document.getElementById('formOS').addEventListener('submit', async (e) => {
     e.preventDefault();
     
@@ -119,15 +143,15 @@ document.getElementById('formOS').addEventListener('submit', async (e) => {
     const custoTotal = parseFloat(document.getElementById('valorPeca').value);
     const qtdParcelas = parseInt(document.getElementById('parcelasForn').value);
     
-    // Gerar cronograma de pagamentos para o fornecedor
-    const pagamentosPeça = [];
+    // Gerar cronograma de parcelamento da PEÇA
+    const pagamentosPeca = [];
     const valorParcela = custoTotal / qtdParcelas;
     const dataBase = new Date();
 
-    for(let i = 0; i < qtdParcelas; i++) {
-        const dataParcela = new Date();
+    for (let i = 0; i < qtdParcelas; i++) {
+        const dataParcela = new Date(dataBase);
         dataParcela.setMonth(dataBase.getMonth() + i);
-        pagamentosPeça.push({
+        pagamentosPeca.push({
             mes: dataParcela.getMonth() + 1,
             ano: dataParcela.getFullYear(),
             valor: valorParcela,
@@ -142,52 +166,27 @@ document.getElementById('formOS').addEventListener('submit', async (e) => {
         valorPeca: custoTotal,
         fornecedor: document.getElementById('fornecedor').value,
         status: 'ENCOMENDA',
-        cronogramaForn: pagamentosPeça, // Aqui está o segredo do parcelamento da peça
+        cronogramaForn: pagamentosPeca,
         lucroBruto: vendaTotal - custoTotal
     };
 
     try {
         await addDoc(collection(db, "controle_os"), novaOS);
-        alert("OS Registrada! A peça foi parcelada em " + qtdParcelas + "x.");
+        alert(`OS salva! Custo de ${fmtMoeda(custoTotal)} parcelado em ${qtdParcelas}x no financeiro.`);
         fecharModal();
         carregarDados();
-    } catch (e) { alert("Erro ao salvar."); }
+    } catch (e) { alert("Erro ao salvar no Firebase."); }
 });
 
-// --- LÓGICA DE BI PARA FLUXO DE CAIXA ---
-function processarFinancas() {
-    let lucroTotal = 0;
-    let comprometidoMesAtual = 0;
-    const hoje = new Date();
-    const mesAtual = hoje.getMonth() + 1;
+// --- AUXILIARES ---
+const fmtMoeda = (v) => (v || 0).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
+window.mudarVisao = (view) => {
+    document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active-view'));
+    document.getElementById('view-' + view).classList.add('active-view');
+    // Adicione lógica para mudar classe do botão ativo se desejar
+};
+window.fecharModal = () => document.getElementById('modal').classList.add('hidden');
+window.abrirModal = () => document.getElementById('modal').classList.remove('hidden');
 
-    dadosLocais.forEach(os => {
-        lucroTotal += (parseFloat(os.lucroBruto) || 0);
-
-        // Verifica quanto da peça cai no mês atual
-        if(os.cronogramaForn) {
-            os.cronogramaForn.forEach(pago => {
-                if(pago.mes === mesAtual) comprometidoMesAtual += pago.valor;
-            });
-        }
-    });
-
-    document.getElementById('total-lucro').innerText = fmtMoeda(lucroTotal);
-    document.getElementById('total-divida').innerText = fmtMoeda(comprometidoMesAtual);
-    
-    // Atualiza a IA com o fluxo de caixa
-    atualizarPromptIA(lucroTotal, comprometidoMesAtual);
-}async function atualizarPromptIA(lucro, dividaMes) {
-    const out = document.getElementById('ai-insight');
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-    const prompt = `Analise como consultor financeiro: 
-    Meu lucro bruto acumulado é ${lucro}. 
-    Este mês, tenho ${dividaMes} em parcelas de peças para pagar aos fornecedores.
-    Dê um conselho sobre minha liquidez (dinheiro em caixa) para este mês.`;
-
-    try {
-        const result = await model.generateContent(prompt);
-        out.innerHTML = `<span class='text-blue-400'>Estratégia:</span> ${result.response.text()}`;
-    } catch (e) { console.error(e); }
-}
+// --- INÍCIO ---
+carregarDados();
