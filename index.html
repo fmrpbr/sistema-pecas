@@ -254,7 +254,51 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
-    const genAI = new GoogleGenerativeAI("AIzaSyDCy3mPyBKhVKt8tY2NHcEnyJ9YaqpgbLA");
+    // Substitua a linha antiga por esta:
+const genAI = new GoogleGenerativeAI("AIzaSyDCy3mPyBKhVKt8tY2NHcEnyJ9YaqpgbLA");
+
+window.analisarComIA = async () => {
+    const out = document.getElementById('smartAnalysisText');
+    const btn = event.currentTarget;
+    
+    // Validação de dados antes de enviar
+    if (todosDados.length === 0) {
+        out.innerHTML = "<i class='fa-solid fa-triangle-exclamation mr-1'></i> Cadastre ordens para que eu possa analisar seu lucro.";
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i>";
+    out.innerHTML = "<span class='animate-pulse text-blue-400'>Consultando inteligência financeira...</span>";
+
+    try {
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        
+        // Envia apenas o essencial para a IA (economiza processamento e foca no lucro)
+        const resumoIA = todosDados.slice(0, 10).map(i => ({
+            item: i.modelo,
+            forn: i.fornecedor,
+            venda: i.valorOS,
+            custo: i.valorPeca,
+            status: i.status
+        }));
+
+        const prompt = `Analise: ${JSON.stringify(resumoIA)}. Dê 2 insights de 1 linha cada sobre lucro e fornecedores em Português. Use <b> para valores ou nomes. Seja direto e profissional.`;
+
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        
+        // Exibe o resultado com uma transição suave
+        out.innerHTML = `<div class="text-blue-100">${response.text()}</div>`;
+        
+    } catch (e) {
+        console.error(e);
+        out.innerHTML = "<span class='text-red-400 font-bold'>Erro: A chave de API pode estar restrita ou expirada.</span>";
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = "<i class='fa-solid fa-wand-magic-sparkles mr-1'></i> ANALISAR";
+    }
+};
 
     let todosDados = [];
     let tabAtual = 'Aracruz';
