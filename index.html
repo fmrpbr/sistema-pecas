@@ -3,211 +3,208 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gestão OS Pro v5.0 - Inteligência Operacional</title>
-    
+    <title>Gestão OS Pro v7.0 - Business Intelligence</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
 
     <style>
         body { font-family: 'Inter', sans-serif; }
         .sidebar-active { background-color: #f1f5f9; color: #2563eb; border-right: 4px solid #2563eb; }
         .view-section { display: none; }
         .view-section.active { display: block; }
-        .ai-gradient { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); }
-        .status-pulse { animation: pulse 2s infinite; }
+        .sla-warning { background-color: #fef9c3 !important; } /* Amarelo > 7 dias */
+        .sla-danger { background-color: #fee2e2 !important; }  /* Vermelho > 15 dias */
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .6; } }
-        /* Scrollbar customizada */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .status-pulse { animation: pulse 2s infinite; }
     </style>
 </head>
-<body class="bg-[#f8fafc] text-slate-700">
+<body class="bg-[#f3f4f6] text-slate-800">
 
     <div id="auth-screen" class="fixed inset-0 z-[5000] flex items-center justify-center bg-slate-900">
-        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm">
-            <div class="text-center mb-8">
-                <h1 class="text-2xl font-black uppercase tracking-tighter italic text-slate-800">OS PRO <span class="text-blue-600">v5.0</span></h1>
-                <p class="text-slate-400 text-xs font-bold uppercase">Painel Administrativo</p>
-            </div>
-            <form id="authForm" class="space-y-4">
-                <input type="email" id="authEmail" class="w-full p-3 border rounded-xl outline-none focus:ring-2 ring-blue-500" required placeholder="E-mail">
-                <input type="password" id="authPass" class="w-full p-3 border rounded-xl outline-none focus:ring-2 ring-blue-500" required placeholder="Senha">
-                <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition uppercase text-xs tracking-widest shadow-lg">Entrar no Sistema</button>
+        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm text-center">
+            <h1 class="text-2xl font-black mb-6 italic">OS PRO <span class="text-blue-600">v7.0</span></h1>
+            <form id="authForm" class="space-y-4 text-left">
+                <input type="email" id="authEmail" class="w-full p-3 border rounded-xl outline-none" required placeholder="E-mail">
+                <input type="password" id="authPass" class="w-full p-3 border rounded-xl outline-none" required placeholder="Senha">
+                <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition uppercase text-xs">Acessar Sistema</button>
             </form>
         </div>
     </div>
 
     <div id="app-content" class="hidden h-screen flex overflow-hidden">
         
-        <aside class="w-64 bg-white border-r flex flex-col no-print">
+        <aside class="w-64 bg-white border-r flex flex-col no-print shadow-lg">
             <div class="p-6 text-slate-900 font-black text-xl flex items-center gap-2 italic">
-                <i class="fa-solid fa-bolt text-blue-600"></i> GESTÃO OS
+                <i class="fa-solid fa-chart-line text-blue-600"></i> GESTÃO OS
             </div>
             
             <nav class="flex-1 space-y-1">
-                <a href="#" onclick="mudarVisao('dashboard', this)" class="sidebar-active flex items-center px-6 py-4 gap-3 font-bold text-xs uppercase tracking-wider transition-all">
-                    <i class="fa-solid fa-chart-pie w-5"></i> Dashboard
+                <a href="#" onclick="mudarVisao('saude', this)" class="sidebar-active flex items-center px-6 py-4 gap-3 font-bold text-xs uppercase transition-all">
+                    <i class="fa-solid fa-heart-pulse w-5"></i> Saúde Financeira
                 </a>
-                <a href="#" onclick="mudarVisao('pesquisa', this)" class="flex items-center px-6 py-4 gap-3 text-slate-400 hover:bg-slate-50 font-bold text-xs uppercase tracking-wider transition-all">
-                    <i class="fa-solid fa-magnifying-glass w-5"></i> Buscar Peça
+                <a href="#" onclick="mudarVisao('historico', this)" class="flex items-center px-6 py-4 gap-3 text-slate-400 hover:bg-slate-50 font-bold text-xs uppercase transition-all">
+                    <i class="fa-solid fa-list-check w-5"></i> Histórico Geral
+                </a>
+                <a href="#" onclick="mudarVisao('pesquisa', this)" class="flex items-center px-6 py-4 gap-3 text-slate-400 hover:bg-slate-50 font-bold text-xs uppercase transition-all">
+                    <i class="fa-solid fa-magnifying-glass w-5"></i> Buscar OS
                 </a>
             </nav>
 
             <div class="px-4 mb-4">
-                <div class="ai-gradient p-5 rounded-2xl text-white shadow-xl relative overflow-hidden">
-                    <div id="aiRiskIndicator" class="absolute top-0 right-0 w-1.5 h-full bg-emerald-500"></div>
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="text-[10px] font-black uppercase tracking-widest text-blue-400">Gemini 3.0 AI</span>
+                <div class="bg-slate-900 p-5 rounded-2xl text-white shadow-xl">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[9px] font-black uppercase text-blue-400 tracking-widest">IA Analista</span>
                         <i class="fa-solid fa-robot text-blue-400"></i>
                     </div>
-                    <div id="smartAnalysisText" class="text-[11px] leading-relaxed opacity-90 italic">
-                        Clique no botão abaixo para analisar a saúde financeira.
-                    </div>
-                    <button onclick="analisarComIA()" class="mt-4 w-full bg-blue-600 hover:bg-blue-500 py-2 rounded-lg text-[9px] font-black uppercase transition-all">
-                        Gerar Insight IA
-                    </button>
+                    <div id="aiAnalysisText" class="text-[10px] leading-relaxed opacity-80 italic">Clique em analisar para ver pontos críticos.</div>
+                    <button onclick="analisarComIA()" class="mt-3 w-full bg-blue-600 py-2 rounded-lg text-[9px] font-bold uppercase hover:bg-blue-500 transition">Analisar Negócio</button>
                 </div>
             </div>
 
             <div class="p-4 border-t flex items-center justify-between bg-slate-50">
-                <span id="userDisplay" class="text-[10px] font-bold text-slate-500 truncate mr-2">Usuário</span>
-                <button onclick="logout()" class="text-[9px] text-red-500 font-black px-3 py-1.5 rounded-lg border border-red-100 hover:bg-red-100 transition">SAIR</button>
+                <span id="userDisplay" class="text-[10px] font-bold text-slate-500 truncate mr-2 italic">Usuário</span>
+                <button onclick="logout()" class="text-[9px] text-red-500 font-bold px-3 py-1.5 rounded-lg border border-red-100 hover:bg-red-100 transition">SAIR</button>
             </div>
         </aside>
 
         <main class="flex-1 overflow-y-auto p-8">
             
-            <div id="view-dashboard" class="view-section active space-y-8">
+            <div id="view-saude" class="view-section active space-y-8">
                 <header class="flex justify-between items-center">
-                    <div>
-                        <h2 class="text-2xl font-black text-slate-800 uppercase italic">Visão Geral</h2>
-                        <p id="currentDate" class="text-slate-400 text-xs font-bold uppercase"></p>
+                    <h2 class="text-2xl font-black text-slate-800 uppercase italic underline decoration-blue-500 decoration-4">Saúde Financeira IA</h2>
+                    <div class="flex gap-2">
+                        <button onclick="exportarExcel()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-[10px] font-bold uppercase shadow-md"><i class="fa-solid fa-file-excel mr-1"></i> Excel</button>
+                        <button onclick="abrirModal()" class="bg-slate-900 text-white px-4 py-2 rounded-lg text-[10px] font-bold uppercase shadow-md">+ Nova OS</button>
                     </div>
-                    <button onclick="abrirModal()" class="bg-slate-900 text-white px-6 py-3 rounded-xl text-xs font-black uppercase hover:bg-black shadow-xl transition-all hover:-translate-y-1">
-                        + Novo Lançamento
-                    </button>
                 </header>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div id="cardAracruz" class="bg-white p-6 rounded-2xl border-l-8 border-emerald-500 shadow-sm transition-all">
-                        <p class="text-[10px] font-black text-slate-400 uppercase italic">Pendente Aracruz</p>
-                        <h3 id="abertoAracruz" class="text-2xl font-black text-slate-800 mt-2">R$ 0,00</h3>
-                    </div>
-                    <div id="cardColatina" class="bg-white p-6 rounded-2xl border-l-8 border-emerald-500 shadow-sm transition-all">
-                        <p class="text-[10px] font-black text-slate-400 uppercase italic">Pendente Colatina</p>
-                        <h3 id="abertoColatina" class="text-2xl font-black text-slate-800 mt-2">R$ 0,00</h3>
-                    </div>
-                    <div id="cardOutros" class="bg-white p-6 rounded-2xl border-l-8 border-emerald-500 shadow-sm transition-all">
-                        <p class="text-[10px] font-black text-slate-400 uppercase italic">Outros Fornecedores</p>
-                        <h3 id="abertoOutros" class="text-2xl font-black text-slate-800 mt-2">R$ 0,00</h3>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                    <div class="bg-slate-900 p-6 rounded-2xl text-white shadow-2xl">
-                        <p class="text-[10px] font-black text-slate-400 uppercase">Lucro do Mês</p>
-                        <h3 id="dashLucro" class="text-3xl font-black text-emerald-400 italic mt-1">R$ 0,00</h3>
-                    </div>
-                    <div class="bg-white p-6 rounded-2xl border border-slate-200">
-                        <p class="text-[10px] font-black text-slate-400 uppercase">Pedidos Ativos</p>
-                        <h3 id="dashTotalAtivos" class="text-2xl font-black text-slate-800 mt-1">0</h3>
-                    </div>
-                    <div class="bg-white p-6 rounded-2xl border border-slate-200">
-                        <p class="text-[10px] font-black text-slate-400 uppercase">Faturamento (Mês)</p>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-blue-600">
+                        <p class="text-[10px] font-black text-slate-400 uppercase">Faturamento Mês</p>
                         <h3 id="dashFat" class="text-2xl font-black text-slate-800 mt-1">R$ 0,00</h3>
                     </div>
-                    <div class="bg-white p-6 rounded-2xl border-l-8 border-red-500 shadow-sm">
-                        <p class="text-[10px] font-black text-red-500 uppercase">Dívida Total</p>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-emerald-500">
+                        <p class="text-[10px] font-black text-slate-400 uppercase">Lucro Líquido</p>
+                        <h3 id="dashLucro" class="text-2xl font-black text-emerald-600 mt-1">R$ 0,00</h3>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-red-500">
+                        <p class="text-[10px] font-black text-slate-400 uppercase">Dívida Fornecedores</p>
                         <h3 id="dashDivida" class="text-2xl font-black text-red-600 mt-1">R$ 0,00</h3>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border-t-4 border-orange-400">
+                        <p class="text-[10px] font-black text-slate-400 uppercase">Impacto Cartão (Est.)</p>
+                        <h3 id="dashTaxas" class="text-2xl font-black text-orange-600 mt-1">R$ 0,00</h3>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
-                    <div class="p-6 border-b bg-slate-50/50 flex justify-between items-center">
-                        <h3 class="font-black text-xs uppercase text-slate-500 tracking-widest">Últimas Atividades</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm">
+                        <h3 class="font-black text-xs uppercase mb-4 text-slate-400 italic">Pendências por Fornecedor</h3>
+                        <div id="listaSaudeFornecedores" class="space-y-3"></div>
                     </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left">
-                            <thead class="bg-slate-50 text-[10px] font-black uppercase text-slate-400 tracking-wider">
-                                <tr>
-                                    <th class="px-6 py-4">OS</th>
-                                    <th class="px-6 py-4">Fornecedor</th>
-                                    <th class="px-6 py-4">Descrição</th>
-                                    <th class="px-6 py-4">Valor</th>
-                                    <th class="px-6 py-4">Status</th>
-                                    <th class="px-6 py-4 text-right">Ação</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tabelaDashboard" class="text-xs font-medium divide-y divide-slate-100"></tbody>
-                        </table>
+                    <div class="bg-slate-900 p-6 rounded-2xl shadow-xl text-white">
+                        <h3 class="font-black text-xs uppercase mb-4 text-blue-400 italic">Pontos Críticos (Análise IA)</h3>
+                        <div id="aiPointsContent" class="text-xs space-y-2 opacity-90 leading-relaxed">
+                            Aguardando análise completa...
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div id="view-pesquisa" class="view-section space-y-6">
-                <header>
-                    <h2 class="text-2xl font-black text-slate-800 uppercase italic">Localizar Peça</h2>
+            <div id="view-historico" class="view-section space-y-6">
+                <header class="flex justify-between items-center">
+                    <h2 class="text-2xl font-black text-slate-800 uppercase italic">Histórico de Encomendas</h2>
+                    <div class="flex gap-4 items-center">
+                        <span class="flex items-center gap-1 text-[10px] font-bold"><div class="w-3 h-3 bg-yellow-200 border"></div> >7 dias</span>
+                        <span class="flex items-center gap-1 text-[10px] font-bold"><div class="w-3 h-3 bg-red-200 border"></div> >15 dias</span>
+                    </div>
                 </header>
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                    <input type="text" id="inputBusca" onkeyup="buscarPeca()" placeholder="Digite o modelo, OS ou fornecedor..." class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-xl outline-none focus:border-blue-500 transition-all font-bold">
+
+                <div class="bg-white rounded-2xl border overflow-hidden shadow-sm">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-slate-50 text-[10px] font-black uppercase text-slate-400 border-b">
+                            <tr>
+                                <th class="px-6 py-4">Data</th>
+                                <th class="px-6 py-4">OS/Fornecedor</th>
+                                <th class="px-6 py-4">Modelo/Peça</th>
+                                <th class="px-6 py-4">Venda</th>
+                                <th class="px-6 py-4">Status</th>
+                                <th class="px-6 py-4 text-right">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaHistorico" class="text-xs divide-y"></tbody>
+                    </table>
                 </div>
+            </div>
+
+            <div id="view-pesquisa" class="view-section space-y-6">
+                <h2 class="text-2xl font-black text-slate-800 uppercase italic">Localizar Registro</h2>
+                <input type="text" id="inputBusca" onkeyup="buscarPeca()" placeholder="Digite OS, modelo ou fornecedor..." class="w-full p-4 rounded-2xl border-2 border-white bg-white shadow-sm outline-none focus:border-blue-500 font-bold transition-all">
                 <div id="resultadosBusca" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
             </div>
 
         </main>
     </div>
 
-    <div id="modalRegistro" class="modal fixed inset-0 z-[6000] hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-        <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden">
+    <div id="modalRegistro" class="modal fixed inset-0 z-[6000] hidden items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 text-slate-800">
+        <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden">
             <div class="p-6 border-b flex justify-between items-center bg-slate-50">
-                <h3 class="font-black text-sm uppercase italic text-slate-800">Detalhes da Operação</h3>
+                <h3 class="font-black text-sm uppercase italic">Detalhes da Ordem de Serviço</h3>
                 <button onclick="fecharModais()" class="text-slate-400 hover:text-red-500"><i class="fa-solid fa-circle-xmark text-2xl"></i></button>
             </div>
-            <form id="formOS" class="p-8 grid grid-cols-2 gap-5 text-slate-800">
+            <form id="formOS" class="p-8 grid grid-cols-2 gap-4">
                 <input type="hidden" id="editId">
+                <div class="col-span-2 grid grid-cols-3 gap-4">
+                    <div><label class="text-[9px] font-black uppercase text-slate-400">Data</label><input type="date" id="data" class="w-full p-2 bg-slate-50 border rounded-lg font-bold" required></div>
+                    <div><label class="text-[9px] font-black uppercase text-slate-400">OS Nº</label><input type="number" id="os" class="w-full p-2 bg-slate-50 border rounded-lg font-bold" required></div>
+                    <div><label class="text-[9px] font-black uppercase text-slate-400">Fornecedor</label>
+                        <select id="fornecedor" class="w-full p-2 bg-slate-50 border rounded-lg font-bold">
+                            <option value="Aracruz">Aracruz</option><option value="Colatina">Colatina</option><option value="Outros">Outros</option>
+                        </select>
+                    </div>
+                </div>
                 <div class="col-span-2">
-                    <label class="text-[10px] font-black uppercase text-slate-400 ml-1">Modelo / Peça</label>
-                    <input type="text" id="modelo" class="w-full p-3 bg-slate-50 border-2 border-slate-100 rounded-xl outline-none focus:border-blue-500 transition-all font-bold" required>
+                    <label class="text-[9px] font-black uppercase text-slate-400">Modelo / Descrição da Peça</label>
+                    <input type="text" id="modelo" class="w-full p-2 bg-slate-50 border rounded-lg font-bold" required>
                 </div>
-                <div>
-                    <label class="text-[10px] font-black uppercase text-slate-400 ml-1">Data</label>
-                    <input type="date" id="data" class="w-full p-3 bg-slate-50 border-2 border-slate-100 rounded-xl outline-none font-bold" required>
-                </div>
-                <div>
-                    <label class="text-[10px] font-black uppercase text-slate-400 ml-1">OS Nº</label>
-                    <input type="number" id="os" class="w-full p-3 bg-slate-50 border-2 border-slate-100 rounded-xl outline-none font-bold" required>
-                </div>
-                <div>
-                    <label class="text-[10px] font-black uppercase text-slate-400 ml-1">Fornecedor</label>
-                    <select id="fornecedor" class="w-full p-3 bg-slate-50 border-2 border-slate-100 rounded-xl outline-none font-bold">
-                        <option value="Aracruz">Aracruz</option>
-                        <option value="Colatina">Colatina</option>
-                        <option value="Outros">Outros</option>
+                <div><label class="text-[9px] font-black uppercase text-slate-400">Status</label>
+                    <select id="status" class="w-full p-2 bg-slate-50 border rounded-lg font-bold">
+                        <option value="ENCOMENDA">📦 ENCOMENDA</option><option value="FINALIZADO">✅ FINALIZADO</option>
+                        <option value="DEVOLUÇÃO">🔙 DEVOLUÇÃO</option><option value="GARANTIA">🛡️ GARANTIA</option>
                     </select>
                 </div>
-                <div>
-                    <label class="text-[10px] font-black uppercase text-slate-400 ml-1">Status</label>
-                    <select id="status" class="w-full p-3 bg-slate-50 border-2 border-slate-100 rounded-xl outline-none font-bold">
-                        <option value="ENCOMENDA">📦 ENCOMENDA</option>
-                        <option value="FINALIZADO">✅ FINALIZADO</option>
-                        <option value="DEVOLUÇÃO">🔙 DEVOLUÇÃO</option>
-                        <option value="GARANTIA">🛡️ GARANTIA</option>
-                    </select>
+                <div class="grid grid-cols-2 gap-2">
+                    <div><label class="text-[9px] font-black uppercase text-slate-400">Custo (R$)</label><input type="number" id="valorPeca" step="0.01" class="w-full p-2 bg-slate-50 border rounded-lg font-black text-red-600"></div>
+                    <div><label class="text-[9px] font-black uppercase text-slate-400">Venda (R$)</label><input type="number" id="valorOS" step="0.01" class="w-full p-2 bg-slate-50 border rounded-lg font-black text-emerald-600"></div>
                 </div>
-                <div>
-                    <label class="text-[10px] font-black uppercase text-slate-400 ml-1">Custo Peça (R$)</label>
-                    <input type="number" id="valorPeca" class="w-full p-3 bg-slate-50 border-2 border-slate-100 rounded-xl outline-none font-black text-red-600" step="0.01">
+
+                <div class="col-span-2 grid grid-cols-2 gap-4 border-t pt-4">
+                    <div class="space-y-2">
+                        <label class="text-[9px] font-black uppercase text-slate-400">Pagamento 1</label>
+                        <div class="flex gap-2">
+                            <select id="pgtoForma1" class="w-2/3 p-2 bg-slate-50 border rounded-lg text-xs">
+                                <option value="">Forma...</option><option value="Dinheiro">Dinheiro</option><option value="Pix">Pix</option>
+                                <option value="Débito">Cartão Débito</option><option value="Crédito">Cartão Crédito</option>
+                            </select>
+                            <input type="number" id="pgtoValor1" step="0.01" placeholder="R$" class="w-1/3 p-2 bg-slate-50 border rounded-lg text-xs font-bold">
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[9px] font-black uppercase text-slate-400">Pagamento 2</label>
+                        <div class="flex gap-2">
+                            <select id="pgtoForma2" class="w-2/3 p-2 bg-slate-50 border rounded-lg text-xs">
+                                <option value="">Forma...</option><option value="Dinheiro">Dinheiro</option><option value="Pix">Pix</option>
+                                <option value="Débito">Cartão Débito</option><option value="Crédito">Cartão Crédito</option>
+                            </select>
+                            <input type="number" id="pgtoValor2" step="0.01" placeholder="R$" class="w-1/3 p-2 bg-slate-50 border rounded-lg text-xs font-bold">
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <label class="text-[10px] font-black uppercase text-slate-400 ml-1">Venda Cliente (R$)</label>
-                    <input type="number" id="valorOS" class="w-full p-3 bg-slate-50 border-2 border-slate-100 rounded-xl outline-none font-black text-emerald-600" step="0.01">
-                </div>
+
                 <div class="col-span-2 pt-4">
-                    <button type="submit" class="w-full bg-blue-600 text-white font-black py-4 rounded-2xl uppercase text-xs tracking-[0.2em] shadow-xl hover:bg-blue-700 transition-all active:scale-95">
-                        Salvar Lançamento
-                    </button>
+                    <button type="submit" class="w-full bg-blue-600 text-white font-black py-4 rounded-2xl uppercase text-xs tracking-widest shadow-xl hover:bg-blue-700 transition-all">Salvar Alterações</button>
                 </div>
             </form>
         </div>
@@ -219,7 +216,6 @@
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
     import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
 
-    // Configuração Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyCoN6SK7Erhh5f67vGNwuP_cGA_LGeNm4U",
         authDomain: "controledeos-2de2c.firebaseapp.com",
@@ -232,212 +228,135 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
-    
-    // Configuração IA (Gemini 1.5 Flash)
-    // Nota: Substitua por uma chave válida se necessário.
     const genAI = new GoogleGenerativeAI("AIzaSyDCy3mPyBKhVKt8tY2NHcEnyJ9YaqpgbLA");
 
     let todosDados = [];
 
-    // --- AUTENTICAÇÃO ---
     onAuthStateChanged(auth, (u) => {
-        if(u) {
-            document.getElementById('auth-screen').classList.add('hidden');
-            document.getElementById('app-content').classList.remove('hidden');
-            document.getElementById('userDisplay').innerText = u.email;
-            carregarDados();
-        } else {
-            document.getElementById('auth-screen').classList.remove('hidden');
-            document.getElementById('app-content').classList.add('hidden');
-        }
+        if(u) { document.getElementById('auth-screen').classList.add('hidden'); document.getElementById('app-content').classList.remove('hidden'); carregarDados(); }
+        else { document.getElementById('auth-screen').classList.remove('hidden'); document.getElementById('app-content').classList.add('hidden'); }
     });
 
     document.getElementById('authForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        try {
-            await signInWithEmailAndPassword(auth, document.getElementById('authEmail').value, document.getElementById('authPass').value);
-        } catch(err) { alert("Acesso Negado: Verifique seus dados."); }
+        try { await signInWithEmailAndPassword(auth, document.getElementById('authEmail').value, document.getElementById('authPass').value); }
+        catch(err) { alert("Acesso Negado."); }
     });
 
     window.logout = () => signOut(auth);
 
-    // --- CARREGAMENTO DE DADOS ---
     async function carregarDados() {
-        try {
-            const q = query(collection(db, "controle_os"), orderBy("data", "desc"));
-            const snapshot = await getDocs(q);
-            todosDados = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-            
-            atualizarDashboard();
-            renderizarTabela();
-            document.getElementById('currentDate').innerText = new Date().toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-        } catch (e) { console.error("Erro ao carregar:", e); }
+        const snapshot = await getDocs(query(collection(db, "controle_os"), orderBy("data", "desc")));
+        todosDados = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        atualizarDashSaude();
+        renderizarTabelaSLA();
     }
 
-    function atualizarDashboard() {
-        let fatTotal=0, lucroTotal=0, ativos=0, dividaTotal=0;
-        const saldosForn = { Aracruz: 0, Colatina: 0, Outros: 0 };
+    function atualizarDashSaude() {
+        let fat=0, luc=0, div=0, taxas=0;
+        const fornSaldos = { Aracruz: 0, Colatina: 0, Outros: 0 };
         const hoje = new Date();
 
         todosDados.forEach(i => {
-            const custo = parseFloat(i.valorPeca) || 0;
-            const venda = parseFloat(i.valorOS) || 0;
-            
-            // Cálculos Financeiros
-            if (i.status === 'FINALIZADO') {
-                const dt = new Date(i.data + "T12:00:00");
-                if (dt.getMonth() === hoje.getMonth() && dt.getFullYear() === hoje.getFullYear()) {
-                    fatTotal += venda;
-                    lucroTotal += (venda - custo);
-                }
-            }
-            
-            if (i.status === 'ENCOMENDA') ativos++;
+            const vOS = parseFloat(i.valorOS) || 0;
+            const vP = parseFloat(i.valorPeca) || 0;
+            const dt = new Date(i.data + "T12:00:00");
 
-            // Dívidas (Considerando histórico se houver)
+            if(dt.getMonth() === hoje.getMonth() && i.status === 'FINALIZADO') {
+                fat += vOS;
+                luc += (vOS - vP);
+            }
+
+            // Dívidas Fornecedor
             let pago = 0;
-            if (i.historicoPagamentos) i.historicoPagamentos.forEach(p => pago += parseFloat(p.valor));
-            
-            const saldoItem = Math.max(0, custo - pago);
-            if (i.status !== 'DEVOLUÇÃO' && i.status !== 'GARANTIA') {
-                dividaTotal += saldoItem;
-                if (saldosForn[i.fornecedor] !== undefined) saldosForn[i.fornecedor] += saldoItem;
-                else saldosForn.Outros += saldoItem;
+            if(i.historicoPagamentos) i.historicoPagamentos.forEach(p => pago += parseFloat(p.valor));
+            const debito = Math.max(0, vP - pago);
+            if(i.status !== 'DEVOLUÇÃO') {
+                div += debito;
+                if(fornSaldos[i.fornecedor] !== undefined) fornSaldos[i.fornecedor] += debito;
+            }
+
+            // Estimativa Taxas (Cartão Crédito assume-se 5%)
+            if(i.recebimento?.forma1 === 'Crédito' || i.recebimento?.forma2 === 'Crédito') {
+                taxas += (vOS * 0.05);
             }
         });
 
-        // Atualiza UI
-        document.getElementById('dashFat').innerText = fmtMoeda(fatTotal);
-        document.getElementById('dashLucro').innerText = fmtMoeda(lucroTotal);
-        document.getElementById('dashTotalAtivos').innerText = ativos;
-        document.getElementById('dashDivida').innerText = fmtMoeda(dividaTotal);
+        document.getElementById('dashFat').innerText = fmtMoeda(fat);
+        document.getElementById('dashLucro').innerText = fmtMoeda(luc);
+        document.getElementById('dashDivida').innerText = fmtMoeda(div);
+        document.getElementById('dashTaxas').innerText = fmtMoeda(taxas);
 
-        // Atualiza Cards Fornecedores
-        const atualizarCard = (id, valor) => {
-            const el = document.getElementById('aberto' + id);
-            const card = document.getElementById('card' + id);
-            el.innerText = fmtMoeda(valor);
-            
-            if (valor > 1500) card.className = "bg-red-50 p-6 rounded-2xl border-l-8 border-red-600 shadow-md status-pulse";
-            else if (valor > 800) card.className = "bg-orange-50 p-6 rounded-2xl border-l-8 border-orange-500 shadow-sm";
-            else card.className = "bg-white p-6 rounded-2xl border-l-8 border-emerald-500 shadow-sm";
-        };
-        
-        atualizarCard('Aracruz', saldosForn.Aracruz);
-        atualizarCard('Colatina', saldosForn.Colatina);
-        atualizarCard('Outros', saldosForn.Outros);
-
-        // Barra de Risco IA
-        const riskBar = document.getElementById('aiRiskIndicator');
-        riskBar.className = dividaTotal > 2000 ? "absolute top-0 right-0 w-2 h-full bg-red-600 status-pulse" : 
-                           dividaTotal > 1000 ? "absolute top-0 right-0 w-2 h-full bg-orange-400" : "absolute top-0 right-0 w-2 h-full bg-emerald-500";
+        // Renderiza lista de fornecedores na saúde
+        const listF = document.getElementById('listaSaudeFornecedores');
+        listF.innerHTML = '';
+        for (const [name, val] of Object.entries(fornSaldos)) {
+            listF.innerHTML += `
+                <div class="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                    <span class="font-bold text-xs uppercase">${name}</span>
+                    <span class="font-black ${val > 1000 ? 'text-red-500' : 'text-slate-700'}">${fmtMoeda(val)}</span>
+                </div>`;
+        }
     }
 
-    function renderizarTabela() {
-        const tb = document.getElementById('tabelaDashboard');
+    function renderizarTabelaSLA() {
+        const tb = document.getElementById('tabelaHistorico');
         tb.innerHTML = '';
-        
-        todosDados.slice(0, 15).forEach(i => {
+        const hoje = new Date();
+
+        todosDados.forEach(i => {
+            const dt = new Date(i.data + "T12:00:00");
+            const diff = Math.floor((hoje - dt) / (1000 * 60 * 60 * 24));
+            
+            let classeSLA = "";
+            if(i.status === 'ENCOMENDA') {
+                if(diff > 15) classeSLA = "sla-danger";
+                else if(diff > 7) classeSLA = "sla-warning";
+            }
+
             tb.innerHTML += `
-                <tr class="hover:bg-slate-50 transition-all group">
-                    <td class="px-6 py-4 font-black text-slate-400 italic">#${i.os}</td>
-                    <td class="px-6 py-4 font-bold text-slate-500">${i.fornecedor}</td>
-                    <td class="px-6 py-4">
-                        <div class="font-bold text-slate-800">${i.modelo}</div>
-                        <div class="text-[10px] text-slate-400">${fmtData(i.data)}</div>
-                    </td>
-                    <td class="px-6 py-4 font-black text-slate-900">${fmtMoeda(i.valorOS)}</td>
-                    <td class="px-6 py-4">
-                        <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase ${corStatus(i.status)}">${i.status}</span>
-                    </td>
+                <tr class="${classeSLA} transition-all">
+                    <td class="px-6 py-4 font-bold text-slate-400">${dt.toLocaleDateString('pt-BR')}</td>
+                    <td class="px-6 py-4 font-black uppercase text-slate-600">#${i.os} - ${i.fornecedor}</td>
+                    <td class="px-6 py-4 font-medium">${i.modelo}</td>
+                    <td class="px-6 py-4 font-black text-slate-800">${fmtMoeda(i.valorOS)}</td>
+                    <td class="px-6 py-4"><span class="px-2 py-1 rounded-full text-[9px] font-black bg-white border border-slate-200">${i.status}</span></td>
                     <td class="px-6 py-4 text-right">
-                        <button onclick="editarItem('${i.id}')" class="text-slate-300 hover:text-blue-600 transition-all mr-2"><i class="fa-solid fa-pen-to-square"></i></button>
-                        <button onclick="deletarItem('${i.id}')" class="text-slate-300 hover:text-red-500 transition-all"><i class="fa-solid fa-trash"></i></button>
+                        <button onclick="editarItem('${i.id}')" class="text-blue-500"><i class="fa-solid fa-pen-to-square"></i></button>
                     </td>
-                </tr>
-            `;
+                </tr>`;
         });
     }
 
-    // --- INTEGRAÇÃO IA ---
     window.analisarComIA = async () => {
-        const out = document.getElementById('smartAnalysisText');
-        out.innerHTML = "<i class='fa-solid fa-microchip fa-spin text-blue-400'></i> Consultando Gemini AI...";
-        
+        const outText = document.getElementById('aiAnalysisText');
+        const outPoints = document.getElementById('aiPointsContent');
+        outText.innerHTML = "Processando análise de risco...";
+
         try {
-            const resumo = {
-                dividaTotal: document.getElementById('dashDivida').innerText,
-                lucroMes: document.getElementById('dashLucro').innerText,
-                totalAtivos: document.getElementById('dashTotalAtivos').innerText,
-                fornecedores: {
-                    aracruz: document.getElementById('abertoAracruz').innerText,
-                    colatina: document.getElementById('abertoColatina').innerText
-                }
+            const context = {
+                divida: document.getElementById('dashDivida').innerText,
+                lucro: document.getElementById('dashLucro').innerText,
+                taxas: document.getElementById('dashTaxas').innerText,
+                fornecedores: Array.from(document.querySelectorAll('#listaSaudeFornecedores div')).map(el => el.innerText)
             };
 
             const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-            const prompt = `Aja como um consultor financeiro. Com base nestes dados de uma assistência técnica de celulares: ${JSON.stringify(resumo)}. 
-            Dê um conselho curto (máximo 150 caracteres) em português sobre o que priorizar hoje. Use um tom direto e profissional.`;
+            const prompt = `Analise estes dados financeiros de uma assistência técnica: ${JSON.stringify(context)}. 
+            Identifique pontos críticos e fortes. Responda em Português, use HTML <ul> e <li>. Seja curto e direto.`;
             
             const result = await model.generateContent(prompt);
-            const response = await result.response;
-            out.innerHTML = `"${response.text()}"`;
-        } catch (e) {
-            out.innerText = "IA temporariamente offline. Verifique sua conexão ou chave de API.";
-            console.error(e);
-        }
+            outPoints.innerHTML = result.response.text();
+            outText.innerHTML = "Análise concluída com sucesso.";
+        } catch (e) { outText.innerText = "IA Offline. Verifique a API Key."; }
     };
 
-    // --- CRUD E UI ---
-    window.buscarPeca = () => {
-        const termo = document.getElementById('inputBusca').value.toLowerCase();
-        const res = document.getElementById('resultadosBusca');
-        res.innerHTML = '';
-        
-        if(termo.length < 2) return;
-
-        const filtrados = todosDados.filter(i => 
-            i.modelo.toLowerCase().includes(termo) || 
-            i.os.toString().includes(termo) || 
-            i.fornecedor.toLowerCase().includes(termo)
-        );
-
-        filtrados.forEach(i => {
-            res.innerHTML += `
-                <div class="bg-white p-5 rounded-2xl border shadow-sm flex justify-between items-center">
-                    <div>
-                        <p class="text-[10px] font-black text-blue-500 uppercase">#${i.os} - ${i.fornecedor}</p>
-                        <h4 class="font-bold text-slate-800">${i.modelo}</h4>
-                        <p class="text-xs text-slate-400">${fmtData(i.data)} - ${i.status}</p>
-                    </div>
-                    <button onclick="editarItem('${i.id}')" class="bg-slate-100 p-3 rounded-xl hover:bg-blue-100 hover:text-blue-600 transition-all">
-                        <i class="fa-solid fa-arrow-right"></i>
-                    </button>
-                </div>
-            `;
-        });
+    window.exportarExcel = () => {
+        const ws = XLSX.utils.json_to_sheet(todosDados);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Relatório Geral");
+        XLSX.writeFile(wb, "Relatorio_OS_Pro.xlsx");
     };
-
-    document.getElementById('formOS').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const id = document.getElementById('editId').value;
-        const dados = {
-            modelo: document.getElementById('modelo').value,
-            data: document.getElementById('data').value,
-            os: document.getElementById('os').value,
-            fornecedor: document.getElementById('fornecedor').value,
-            status: document.getElementById('status').value,
-            valorPeca: parseFloat(document.getElementById('valorPeca').value) || 0,
-            valorOS: parseFloat(document.getElementById('valorOS').value) || 0
-        };
-
-        try {
-            if(id) await updateDoc(doc(db, "controle_os", id), dados);
-            else await addDoc(collection(db, "controle_os"), dados);
-            fecharModais();
-            carregarDados();
-        } catch(e) { alert("Erro ao salvar."); }
-    });
 
     window.editarItem = (id) => {
         const i = todosDados.find(x => x.id === id);
@@ -450,17 +369,55 @@
         document.getElementById('status').value = i.status;
         document.getElementById('valorPeca').value = i.valorPeca;
         document.getElementById('valorOS').value = i.valorOS;
+        
+        // Restaura Pagamentos
+        document.getElementById('pgtoForma1').value = i.recebimento?.forma1 || '';
+        document.getElementById('pgtoValor1').value = i.recebimento?.valor1 || '';
+        document.getElementById('pgtoForma2').value = i.recebimento?.forma2 || '';
+        document.getElementById('pgtoValor2').value = i.recebimento?.valor2 || '';
+
         document.getElementById('modalRegistro').style.display = 'flex';
     };
 
-    window.deletarItem = async (id) => {
-        if(confirm("Deseja realmente apagar este registro?")) {
-            await deleteDoc(doc(db, "controle_os", id));
-            carregarDados();
-        }
+    document.getElementById('formOS').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('editId').value;
+        const dados = {
+            modelo: document.getElementById('modelo').value,
+            data: document.getElementById('data').value,
+            os: document.getElementById('os').value,
+            fornecedor: document.getElementById('fornecedor').value,
+            status: document.getElementById('status').value,
+            valorPeca: parseFloat(document.getElementById('valorPeca').value) || 0,
+            valorOS: parseFloat(document.getElementById('valorOS').value) || 0,
+            recebimento: {
+                forma1: document.getElementById('pgtoForma1').value,
+                valor1: parseFloat(document.getElementById('pgtoValor1').value) || 0,
+                forma2: document.getElementById('pgtoForma2').value,
+                valor2: parseFloat(document.getElementById('pgtoValor2').value) || 0
+            }
+        };
+
+        if(id) await updateDoc(doc(db, "controle_os", id), dados);
+        else await addDoc(collection(db, "controle_os"), dados);
+        
+        fecharModais(); carregarDados();
+    });
+
+    window.buscarPeca = () => {
+        const t = document.getElementById('inputBusca').value.toLowerCase();
+        const res = document.getElementById('resultadosBusca');
+        res.innerHTML = ''; if(t.length < 2) return;
+
+        todosDados.filter(i => i.modelo.toLowerCase().includes(t) || i.os.toString().includes(t)).forEach(i => {
+            res.innerHTML += `<div class="bg-white p-4 rounded-xl border shadow-sm">
+                <p class="text-[10px] font-black text-blue-500 uppercase">#${i.os} - ${i.fornecedor}</p>
+                <h4 class="font-bold">${i.modelo}</h4>
+                <button onclick="editarItem('${i.id}')" class="mt-2 text-xs text-blue-600 font-bold">Ver Detalhes</button>
+            </div>`;
+        });
     };
 
-    // --- AUXILIARES ---
     window.mudarVisao = (view, btn) => {
         document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
         document.getElementById('view-' + view).classList.add('active');
@@ -468,23 +425,9 @@
         btn.classList.add('sidebar-active');
     };
 
-    window.abrirModal = () => {
-        document.getElementById('formOS').reset();
-        document.getElementById('editId').value = '';
-        document.getElementById('data').valueAsDate = new Date();
-        document.getElementById('modalRegistro').style.display = 'flex';
-    };
-
+    window.abrirModal = () => { document.getElementById('formOS').reset(); document.getElementById('editId').value = ''; document.getElementById('modalRegistro').style.display = 'flex'; };
     window.fecharModais = () => document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
-    
     const fmtMoeda = (v) => (v||0).toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
-    const fmtData = (d) => { if(!d) return '-'; const x = new Date(d+"T12:00:00"); return x.toLocaleDateString('pt-BR'); };
-    const corStatus = (s) => {
-        if(s === 'FINALIZADO') return 'bg-emerald-100 text-emerald-600';
-        if(s === 'ENCOMENDA') return 'bg-blue-100 text-blue-600';
-        if(s === 'DEVOLUÇÃO') return 'bg-red-100 text-red-600';
-        return 'bg-slate-100 text-slate-600';
-    };
 </script>
 </body>
 </html>
