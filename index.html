@@ -3,435 +3,228 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>OS PRO 2026 - Gestão Financeira v10</title>
+    <title>OS PRO 2026 - Business Intelligence v12</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
-    
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
-        body { font-family: 'Inter', sans-serif; font-size: 16px; } /* Fonte aumentada */
-        .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.3); }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; font-size: 16px; background: #f8fafc; }
+        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
         .view-section { display: none; }
         .active-view { display: block; }
-        .active-tab { border-left: 6px solid #2563eb; background: #eff6ff; color: #2563eb; }
-        .btn-forn-active { background: #2563eb !important; color: white !important; }
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .active-tab { border-left: 6px solid #2563eb; background: #f1f5f9; color: #2563eb; }
+        /* Ajuste de tabela para telas menores */
+        .table-container { overflow-x: auto; border-radius: 2rem; }
+        th, td { min-width: 100px; padding: 1.25rem !important; }
+        .col-forn { min-width: 150px; position: sticky; left: 0; background: white; z-index: 10; font-weight: 900; }
     </style>
 </head>
-<body class="bg-gradient-to-br from-slate-200 to-blue-100 h-screen overflow-hidden text-slate-900">
+<body class="h-screen overflow-hidden text-slate-900">
 
     <div id="auth-screen" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900">
-        <div class="bg-white p-10 rounded-[2.5rem] shadow-2xl w-full max-w-md">
-            <h2 class="text-3xl font-black mb-8 italic text-center uppercase tracking-tighter">OS PRO <span class="text-blue-600">2026</span></h2>
-            <input type="email" id="loginEmail" placeholder="E-mail" class="w-full p-4 bg-slate-100 rounded-2xl mb-4 text-lg outline-none border focus:border-blue-500 font-semibold">
-            <input type="password" id="loginPass" placeholder="Senha" class="w-full p-4 bg-slate-100 rounded-2xl mb-8 text-lg outline-none border focus:border-blue-500 font-semibold">
-            <button onclick="login()" class="w-full bg-blue-600 text-white p-5 rounded-2xl font-black uppercase text-sm hover:bg-blue-700 transition shadow-lg">Acessar Painel</button>
+        <div class="bg-white p-10 rounded-[3rem] shadow-2xl w-full max-w-md text-center">
+            <h2 class="text-3xl font-black mb-8 italic uppercase tracking-tighter">OS PRO <span class="text-blue-600">2026</span></h2>
+            <input type="email" id="loginEmail" placeholder="E-mail" class="w-full p-4 bg-slate-50 rounded-2xl mb-4 border font-bold">
+            <input type="password" id="loginPass" placeholder="Senha" class="w-full p-4 bg-slate-50 rounded-2xl mb-8 border font-bold">
+            <button onclick="login()" class="w-full bg-blue-600 text-white p-5 rounded-2xl font-black uppercase shadow-xl hover:bg-blue-700 transition">Acessar Sistema</button>
         </div>
     </div>
 
     <div id="app" class="flex h-full hidden">
-        <aside class="w-72 glass shadow-2xl z-30 flex flex-col border-r">
-            <div class="p-10 text-3xl font-black italic tracking-tighter text-blue-600">
-                <i class="fa-solid fa-bolt-lightning"></i> OS PRO
+        <aside class="w-72 glass shadow-2xl z-30 flex flex-col border-r border-slate-200">
+            <div class="p-10 font-black italic text-2xl tracking-tighter text-slate-800">
+                <i class="fa-solid fa-chart-line text-blue-600 mr-2"></i>OS PRO <span class="text-blue-600">v12</span>
             </div>
             
-            <nav class="flex-1 px-4 space-y-3">
-                <button onclick="mudarVisao('saude')" class="sidebar-btn w-full flex items-center p-5 gap-4 font-bold text-sm uppercase active-tab transition-all">
-                    <i class="fa-solid fa-chart-pie text-xl"></i> Saúde Financeira
+            <nav class="flex-1 px-4 space-y-2">
+                <button onclick="mudarVisao('saude')" class="sidebar-btn w-full flex items-center p-5 gap-4 font-bold text-sm uppercase active-tab rounded-2xl">
+                    <i class="fa-solid fa-wallet"></i> Saúde & BI
                 </button>
-                <button onclick="mudarVisao('ordens')" class="sidebar-btn w-full flex items-center p-5 gap-4 font-bold text-sm uppercase text-slate-500 transition-all hover:bg-white/50">
-                    <i class="fa-solid fa-file-invoice-dollar text-xl"></i> Ordens de Serviço
+                <button onclick="mudarVisao('ordens')" class="sidebar-btn w-full flex items-center p-5 gap-4 font-bold text-sm uppercase text-slate-500 rounded-2xl hover:bg-slate-50">
+                    <i class="fa-solid fa-list-check"></i> Ordens de Serviço
                 </button>
             </nav>
 
-            <div class="p-8 border-t bg-slate-50/50">
-                <div class="bg-slate-900 p-6 rounded-[2rem] text-xs text-blue-300 shadow-xl">
-                    <p class="font-black uppercase mb-2 tracking-widest text-blue-500">Inteligência Financeira</p>
-                    <div id="ai-insight" class="italic opacity-90 leading-relaxed font-medium">Processando fluxo de caixa...</div>
-                </div>
-                <button onclick="logout()" class="w-full mt-6 font-bold text-red-500 uppercase text-xs tracking-widest">Sair do Sistema</button>
+            <div class="p-8">
+                <button onclick="logout()" class="w-full font-black text-red-500 uppercase text-[10px] tracking-widest p-4 rounded-xl border border-red-100 hover:bg-red-50 transition">Sair</button>
             </div>
         </aside>
 
         <main class="flex-1 overflow-y-auto p-12">
             
-            <section id="view-saude" class="view-section active-view space-y-10">
-                <header class="flex justify-between items-center">
-                    <h1 class="text-4xl font-black italic uppercase tracking-tighter">Visão Estratégica</h1>
-                    <div class="bg-white px-8 py-4 rounded-[2rem] shadow-lg border-2 border-emerald-100 flex flex-col items-end">
-                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Lucro Líquido Real</span>
-                        <span id="val-lucro-liquido" class="text-3xl font-black text-emerald-600">R$ 0,00</span>
+            <section id="view-saude" class="view-section active-view space-y-12">
+                <header class="flex justify-between items-end">
+                    <div>
+                        <h1 class="text-5xl font-black italic tracking-tighter text-slate-900">Business <span class="text-blue-600">Intelligence</span></h1>
+                        <p class="text-slate-400 font-bold uppercase text-[10px] mt-2 tracking-widest">Acompanhamento de Lucratividade Real por Mês</p>
                     </div>
                 </header>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-                    <div class="glass p-10 rounded-[3rem] shadow-xl space-y-8 border-b-8 border-blue-600">
-                        <h3 class="font-black uppercase text-sm text-blue-600 tracking-[0.2em]">Fluxo Permanente (Histórico)</h3>
-                        <div class="grid grid-cols-3 gap-6 text-center">
-                            <div class="p-4 bg-slate-50 rounded-3xl"><p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Total Pedido</p><p id="p-total-pedido" class="font-black text-lg">R$ 0</p></div>
-                            <div class="p-4 bg-red-50 rounded-3xl"><p class="text-[10px] font-bold text-red-400 uppercase mb-1">Em Aberto</p><p id="p-total-aberto" class="font-black text-lg text-red-600">R$ 0</p></div>
-                            <div class="p-4 bg-emerald-50 rounded-3xl"><p class="text-[10px] font-bold text-emerald-400 uppercase mb-1">Total Pago</p><p id="p-total-pago" class="font-black text-lg text-emerald-600">R$ 0</p></div>
-                        </div>
+                <div class="bg-white rounded-[3rem] shadow-2xl border border-slate-100 overflow-hidden">
+                    <div class="p-8 border-b bg-slate-50/50 flex justify-between items-center">
+                        <h3 class="font-black uppercase text-xs tracking-widest text-slate-500">Matriz de Lucro Líquido 2026</h3>
+                        <span class="bg-blue-600 text-white text-[9px] px-3 py-1 rounded-full font-black uppercase">Automático</span>
                     </div>
-
-                    <div class="glass p-10 rounded-[3rem] shadow-xl space-y-8 border-b-8 border-blue-400">
-                        <h3 class="font-black uppercase text-sm text-blue-500 tracking-[0.2em]">Desempenho Mês Atual</h3>
-                        <div class="grid grid-cols-3 gap-6 text-center">
-                            <div class="p-4 bg-slate-50 rounded-3xl"><p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Pedido Mês</p><p id="m-total-pedido" class="font-black text-lg">R$ 0</p></div>
-                            <div class="p-4 bg-red-50 rounded-3xl"><p class="text-[10px] font-bold text-red-400 uppercase mb-1">Aberto Mês</p><p id="m-total-aberto" class="font-black text-lg text-red-600">R$ 0</p></div>
-                            <div class="p-4 bg-emerald-50 rounded-3xl"><p class="text-[10px] font-bold text-emerald-400 uppercase mb-1">Pago Mês</p><p id="m-total-pago" class="font-black text-lg text-emerald-600">R$ 0</p></div>
-                        </div>
+                    <div class="table-container">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="bg-slate-100/30 text-[10px] font-black uppercase text-slate-400">
+                                    <th class="col-forn">Fornecedor</th>
+                                    <th>Jan</th><th>Fev</th><th>Mar</th><th>Abr</th><th>Mai</th><th>Jun</th>
+                                    <th>Jul</th><th>Ago</th><th>Set</th><th>Out</th><th>Nov</th><th>Dez</th>
+                                    <th class="bg-blue-50 text-blue-600">Total Ano</th>
+                                </tr>
+                            </thead>
+                            <tbody id="corpo-matriz-lucro" class="text-sm font-bold divide-y divide-slate-100">
+                                </tbody>
+                            <tfoot id="footer-matriz-lucro" class="bg-slate-900 text-white font-black text-sm">
+                                </tfoot>
+                        </table>
                     </div>
                 </div>
 
-                <div class="glass p-10 rounded-[3rem] shadow-xl">
-                    <h3 class="font-black uppercase text-sm text-slate-500 mb-8 tracking-widest italic flex items-center gap-2">
-                        <i class="fa-solid fa-truck-ramp-box"></i> Saúde dos Fornecedores & Créditos
-                    </h3>
-                    <div id="grid-fornecedores" class="grid grid-cols-1 md:grid-cols-3 gap-8"></div>
-                </div>
+                <div id="grid-fornecedores" class="grid grid-cols-1 md:grid-cols-3 gap-8"></div>
             </section>
 
-            <section id="view-ordens" class="view-section space-y-8">
+            <section id="view-ordens" class="view-section space-y-10">
                 <header class="flex justify-between items-center">
-                    <h2 class="text-3xl font-black uppercase italic tracking-tighter">Gerenciar Peças</h2>
-                    <button onclick="abrirModalOS()" class="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black uppercase text-xs shadow-xl hover:scale-105 transition-all">+ Nova Ordem</button>
+                    <h2 class="text-3xl font-black italic uppercase tracking-tighter">Gerenciar <span class="text-blue-600">Peças</span></h2>
+                    <button onclick="abrirModalOS()" class="bg-blue-600 text-white px-10 py-5 rounded-[2rem] font-black uppercase text-xs shadow-xl">+ Nova Entrada</button>
                 </header>
-
-                <div class="flex flex-wrap gap-3 p-2 bg-slate-200/50 rounded-3xl w-max">
-                    <button onclick="filtrarTabOS('Aracruz')" class="tab-forn p-4 px-8 rounded-2xl font-black text-xs uppercase transition-all bg-white shadow-sm border">Aracruz</button>
-                    <button onclick="filtrarTabOS('Colatina')" class="tab-forn p-4 px-8 rounded-2xl font-black text-xs uppercase transition-all bg-white/50 text-slate-400">Colatina</button>
-                    <button onclick="filtrarTabOS('Outros')" class="tab-forn p-4 px-8 rounded-2xl font-black text-xs uppercase transition-all bg-white/50 text-slate-400">Outros</button>
-                </div>
-
-                <div class="flex gap-4">
-                    <button onclick="abrirModalPagamento()" class="bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold text-xs uppercase shadow-md hover:bg-emerald-700 transition">
-                        <i class="fa-solid fa-money-bill-transfer mr-2"></i> Registrar Pagamento Fornecedor
-                    </button>
-                    <button onclick="exportarExcelFornecedor()" class="bg-slate-800 text-white px-6 py-3 rounded-xl font-bold text-xs uppercase shadow-md hover:bg-black transition">
-                        <i class="fa-solid fa-download mr-2"></i> Exportar Aberto (.XLS)
-                    </button>
-                </div>
-
-                <div class="glass rounded-[2.5rem] overflow-hidden shadow-2xl border">
-                    <table class="w-full text-left text-sm">
-                        <thead class="bg-slate-100/50 font-black uppercase text-slate-400 border-b">
-                            <tr><th class="p-6">Data</th><th class="p-6">OS</th><th class="p-6">Marca/Modelo</th><th class="p-6">Custo</th><th class="p-6">Venda</th><th class="p-6">Status</th><th class="p-6 text-right">Ação</th></tr>
-                        </thead>
-                        <tbody id="tabela-os" class="divide-y divide-slate-100 font-semibold"></tbody>
-                    </table>
-                </div>
+                <div id="tabela-os-container" class="bg-white rounded-[3rem] shadow-2xl overflow-hidden border border-slate-100">
+                     </div>
             </section>
         </main>
     </div>
 
     <div id="modalOS" class="fixed inset-0 z-[110] hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-        <div class="bg-white w-full max-w-2xl p-10 rounded-[3rem] shadow-3xl overflow-y-auto max-h-[90vh]">
-            <h3 class="text-2xl font-black italic uppercase mb-8 border-b pb-4">Detalhes da OS</h3>
-            <form id="formOS" class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm font-bold">
-                <input type="hidden" id="osId">
-                <div><label class="uppercase text-slate-400 block mb-2 text-[10px]">Data</label><input type="date" id="data" class="w-full p-4 bg-slate-100 rounded-2xl outline-none" required></div>
-                <div><label class="uppercase text-slate-400 block mb-2 text-[10px]">Número OS</label><input type="number" id="os" class="w-full p-4 bg-slate-100 rounded-2xl outline-none" required></div>
-                <div><label class="uppercase text-slate-400 block mb-2 text-[10px]">Fornecedor</label><select id="fornecedor" class="w-full p-4 bg-slate-100 rounded-2xl outline-none"><option>Aracruz</option><option>Colatina</option><option>Outros</option></select></div>
-                <div><label class="uppercase text-slate-400 block mb-2 text-[10px]">Marca</label><input type="text" id="marca" class="w-full p-4 bg-slate-100 rounded-2xl outline-none"></div>
-                <div class="md:col-span-2"><label class="uppercase text-slate-400 block mb-2 text-[10px]">Modelo do Aparelho / Peça</label><input type="text" id="modelo" class="w-full p-4 bg-slate-100 rounded-2xl outline-none" required></div>
-                <div><label class="uppercase text-slate-400 block mb-2 text-[10px]">Custo Peça (R$)</label><input type="number" id="valorPeca" step="0.01" class="w-full p-4 bg-slate-100 rounded-2xl text-red-500 font-black"></div>
-                <div><label class="uppercase text-slate-400 block mb-2 text-[10px]">Venda Cliente (R$)</label><input type="number" id="valorOS" step="0.01" class="w-full p-4 bg-slate-100 rounded-2xl text-emerald-600 font-black"></div>
-                <div><label class="uppercase text-slate-400 block mb-2 text-[10px]">Status</label><select id="status" class="w-full p-4 bg-slate-100 rounded-2xl outline-none"><option value="Utilizado">Utilizado</option><option value="Devolvida">Devolvida</option><option value="Garantia">Garantia</option></select></div>
-                <button type="submit" class="md:col-span-2 bg-blue-600 text-white p-5 rounded-2xl font-black uppercase text-xs shadow-xl transition">Salvar Registro</button>
-            </form>
-        </div>
-    </div>
-
-    <div id="modalPagto" class="fixed inset-0 z-[120] hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm">
-        <div class="bg-white w-full max-w-sm p-10 rounded-[3rem] shadow-3xl text-center">
-            <h3 class="text-xl font-black uppercase mb-2 italic">Abater Dívida</h3>
-            <p id="pagto-forn-nome" class="text-blue-600 font-black mb-8 uppercase text-xs"></p>
-            <input type="number" id="pagto-valor" step="0.01" placeholder="Valor R$ 0,00" class="w-full p-5 bg-slate-100 rounded-2xl mb-4 font-black text-center text-xl outline-none border-2 border-slate-200 focus:border-blue-500">
-            <select id="pagto-tipo" class="w-full p-4 bg-slate-100 rounded-2xl mb-8 font-bold outline-none">
-                <option>PIX</option><option>Cartão de Crédito</option><option>Cartão de Débito</option>
-            </select>
-            <div class="flex gap-4">
-                <button onclick="confirmarPagamentoForn()" class="flex-1 bg-emerald-600 text-white p-4 rounded-xl font-black uppercase text-xs">Confirmar</button>
-                <button onclick="document.getElementById('modalPagto').classList.add('hidden')" class="bg-slate-100 p-4 rounded-xl font-bold uppercase text-xs">Sair</button>
-            </div>
+        <div class="bg-white w-full max-w-2xl p-10 rounded-[3rem] shadow-3xl">
+             <form id="formOS" class="grid grid-cols-1 md:grid-cols-2 gap-6 font-bold">
+                 <input type="hidden" id="osId">
+                 <div class="md:col-span-2 text-xl font-black uppercase mb-4 border-b pb-4">Detalhes da Peça</div>
+                 <input type="date" id="data" class="p-4 bg-slate-50 rounded-xl border" required>
+                 <input type="number" id="os" placeholder="Nº OS" class="p-4 bg-slate-50 rounded-xl border" required>
+                 <select id="fornecedor" class="p-4 bg-slate-50 rounded-xl border"><option>Aracruz</option><option>Colatina</option><option>Outros</option></select>
+                 <input type="text" id="modelo" placeholder="Modelo/Peça" class="p-4 bg-slate-50 rounded-xl border" required>
+                 <input type="number" id="valorPeca" step="0.01" placeholder="Custo (R$)" class="p-4 bg-slate-100 rounded-xl border text-red-500 font-black">
+                 <input type="number" id="valorOS" step="0.01" placeholder="Venda (R$)" class="p-4 bg-slate-100 rounded-xl border text-emerald-600 font-black">
+                 <select id="status" class="p-4 bg-slate-50 rounded-xl border"><option value="Utilizado">Utilizado</option><option value="Devolvida">Devolvida</option></select>
+                 <button type="submit" class="md:col-span-2 bg-slate-900 text-white p-5 rounded-2xl font-black uppercase transition hover:bg-black">Gravar OS</button>
+                 <button type="button" onclick="fecharModalOS()" class="md:col-span-2 text-slate-400 font-bold uppercase text-[10px]">Cancelar</button>
+             </form>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy, where, increment } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
-        import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
 
+        // Configuração Firebase (Sua configuração atual)
         const firebaseConfig = {
             apiKey: "AIzaSyCoN6SK7Erhh5f67vGNwuP_cGA_LGeNm4U",
             authDomain: "controledeos-2de2c.firebaseapp.com",
             projectId: "controledeos-2de2c",
             storageBucket: "controledeos-2de2c.firebasestorage.app",
             messagingSenderId: "1037478732552",
-            appId: "1:1037478732552:web:3d32412d5a713c3cc042bd",
-            measurementId: "G-FQ94ZVSLF5"
+            appId: "1:1037478732552:web:3d32412d5a713c3cc042bd"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
-        const genAI = new GoogleGenerativeAI("AIzaSyCha6XRWgfXY1PxtreksvS_rP4SLBF9nh0");
 
         let todosDados = [];
-        let fornSelecionado = 'Aracruz';
-        let userLogado = null;
 
-        // AUTH
+        // AUTH & CARREGAMENTO
         window.login = async () => {
-            const email = document.getElementById('loginEmail').value;
-            const pass = document.getElementById('loginPass').value;
-            try { await signInWithEmailAndPassword(auth, email, pass); } catch(e) { alert("Acesso negado."); }
+            try { await signInWithEmailAndPassword(auth, loginEmail.value, loginPass.value); } catch(e) { alert("Erro de acesso."); }
         };
-
-        onAuthStateChanged(auth, (u) => {
-            if(u) {
-                userLogado = u;
-                document.getElementById('auth-screen').classList.add('hidden');
-                document.getElementById('app').classList.remove('hidden');
-                carregarDados();
-            } else {
-                document.getElementById('app').classList.add('hidden');
-                document.getElementById('auth-screen').classList.remove('hidden');
-            }
-        });
-
+        onAuthStateChanged(auth, u => { if(u) { app.classList.remove('hidden'); auth-screen.classList.add('hidden'); carregarDados(); } });
         window.logout = () => signOut(auth);
 
         async function carregarDados() {
             const snap = await getDocs(query(collection(db, "controle_os"), orderBy("data", "desc")));
             todosDados = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-            processarTudo();
+            gerarMatrizBI();
         }
 
-        function processarTudo() {
-            const hoje = new Date();
-            const mesAtual = hoje.getMonth();
-            const anoAtual = hoje.getFullYear();
-
-            let permanente = { pedido: 0, aberto: 0, pago: 0, lucro: 0 };
-            let mensal = { pedido: 0, aberto: 0, pago: 0 };
-            let fornecedores = {
-                Aracruz: { aberto: 0, credito: 0, pagoTotal: 0 },
-                Colatina: { aberto: 0, credito: 0, pagoTotal: 0 },
-                Outros: { aberto: 0, credito: 0, pagoTotal: 0 }
-            };
+        function gerarMatrizBI() {
+            const fornecedores = ['Aracruz', 'Colatina', 'Outros'];
+            const mesesLabels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+            
+            // Estrutura de dados: { Aracruz: [0,0,0...12], ... }
+            let matriz = {};
+            fornecedores.forEach(f => matriz[f] = Array(12).fill(0));
+            
+            let totaisMensais = Array(12).fill(0);
 
             todosDados.forEach(os => {
-                const custo = parseFloat(os.valorPeca) || 0;
-                const venda = parseFloat(os.valorOS) || 0;
-                const d = new Date(os.data + "T12:00:00");
-                const isMes = (d.getMonth() === mesAtual && d.getFullYear() === anoAtual);
-                const fKey = os.fornecedor || 'Outros';
+                if(os.status === 'Utilizado') {
+                    const dataOS = new Date(os.data + "T12:00:00");
+                    const mes = dataOS.getMonth();
+                    const lucro = (parseFloat(os.valorOS) || 0) - (parseFloat(os.valorPeca) || 0);
+                    const fKey = os.fornecedor || 'Outros';
 
-                // Cálculo de Lucro e Dívida
-                if (os.status === 'Utilizado') {
-                    const pagoForn = parseFloat(os.pagoAoFornecedor) || 0;
-                    const debito = Math.max(0, custo - pagoForn);
-                    
-                    permanente.aberto += debito;
-                    permanente.pedido += custo;
-                    permanente.pago += pagoForn;
-                    permanente.lucro += (venda - custo);
-
-                    if(fornecedores[fKey]) {
-                        fornecedores[fKey].aberto += debito;
-                        fornecedores[fKey].pagoTotal += pagoForn;
-                    }
-
-                    if(isMes) {
-                        mensal.pedido += custo;
-                        mensal.aberto += debito;
-                        mensal.pago += pagoForn;
-                    }
-                } 
-                else if (os.status === 'Devolvida') {
-                    // Se foi devolvida e estava paga, gera crédito
-                    const pagoForn = parseFloat(os.pagoAoFornecedor) || 0;
-                    if (pagoForn > 0 && fornecedores[fKey]) {
-                        fornecedores[fKey].credito += pagoForn;
+                    if(matriz[fKey]) {
+                        matriz[fKey][mes] += lucro;
+                        totaisMensais[mes] += lucro;
                     }
                 }
             });
 
-            // Update UI
-            document.getElementById('val-lucro-liquido').innerText = fmtMoeda(permanente.lucro);
-            document.getElementById('p-total-pedido').innerText = fmtMoeda(permanente.pedido);
-            document.getElementById('p-total-aberto').innerText = fmtMoeda(permanente.aberto);
-            document.getElementById('p-total-pago').innerText = fmtMoeda(permanente.pago);
-            document.getElementById('m-total-pedido').innerText = fmtMoeda(mensal.pedido);
-            document.getElementById('m-total-aberto').innerText = fmtMoeda(mensal.aberto);
-            document.getElementById('m-total-pago').innerText = fmtMoeda(mensal.pago);
-
-            renderizarFornecedores(fornecedores);
-            renderizarTabela();
-            atualizarIA();
-        }
-
-        function renderizarFornecedores(dados) {
-            const grid = document.getElementById('grid-fornecedores');
-            grid.innerHTML = '';
-            Object.entries(dados).forEach(([nome, val]) => {
-                grid.innerHTML += `
-                    <div class="p-8 bg-white rounded-[2.5rem] shadow-lg border border-slate-100">
-                        <p class="font-black text-blue-600 uppercase text-xs text-center mb-6 tracking-tighter">${nome}</p>
-                        <div class="space-y-4">
-                            <div class="flex justify-between border-b pb-2"><span class="text-[10px] uppercase font-bold text-slate-400">Em Aberto</span><span class="font-black text-red-600">${fmtMoeda(val.aberto)}</span></div>
-                            <div class="flex justify-between border-b pb-2"><span class="text-[10px] uppercase font-bold text-emerald-400">Créditos</span><span class="font-black text-emerald-600">${fmtMoeda(val.credito)}</span></div>
-                            <div class="flex justify-between"><span class="text-[10px] uppercase font-bold text-slate-400">Total Pago</span><span class="font-bold text-slate-700">${fmtMoeda(val.pagoTotal)}</span></div>
-                        </div>
-                    </div>`;
-            });
-        }
-
-        window.mudarVisao = (view) => {
-            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active-view'));
-            document.getElementById('view-' + view).classList.add('active-view');
-            document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active-tab', 'text-slate-500'));
-            event.currentTarget.classList.add('active-tab');
-        };
-
-        window.filtrarTabOS = (forn) => {
-            fornSelecionado = forn;
-            document.querySelectorAll('.tab-forn').forEach(b => {
-                b.classList.remove('bg-white', 'shadow-sm', 'border');
-                b.classList.add('bg-white/50', 'text-slate-400');
-            });
-            event.currentTarget.classList.add('bg-white', 'shadow-sm', 'border');
-            event.currentTarget.classList.remove('bg-white/50', 'text-slate-400');
-            renderizarTabela();
-        };
-
-        function renderizarTabela() {
-            const tb = document.getElementById('tabela-os');
-            tb.innerHTML = '';
-            const filtrados = todosDados.filter(i => i.fornecedor === fornSelecionado);
-
-            filtrados.forEach(os => {
-                const isAdmin = userLogado?.email === 'nortecolor@gmail.com';
-                const vP = parseFloat(os.valorPeca) || 0;
-                const vPago = parseFloat(os.pagoAoFornecedor) || 0;
-                const saldo = Math.max(0, vP - vPago);
-
-                tb.innerHTML += `
-                    <tr class="hover:bg-blue-50/50 transition">
-                        <td class="p-6 font-bold text-slate-400 text-xs">${fmtData(os.data)}</td>
-                        <td class="p-6 font-black italic">#${os.os}</td>
-                        <td class="p-6"><div class="font-black">${os.modelo}</div><div class="text-[10px] text-slate-400 uppercase">${os.marca}</div></td>
-                        <td class="p-6"><p class="text-red-500 font-bold">${fmtMoeda(vP)}</p><p class="text-[9px] text-slate-400">Restante: ${fmtMoeda(saldo)}</p></td>
-                        <td class="p-6 font-black text-blue-600">${fmtMoeda(os.valorOS)}</td>
-                        <td class="p-6"><span class="px-4 py-2 rounded-full bg-white border text-[10px] font-black uppercase">${os.status}</span></td>
-                        <td class="p-6 text-right">${isAdmin ? `<button onclick="editarOS('${os.id}')" class="text-blue-500 text-lg hover:scale-125 transition-all"><i class="fa-solid fa-pen-to-square"></i></button>` : `<i class="fa-solid fa-lock text-slate-200"></i>`}</td>
-                    </tr>`;
-            });
-        }
-
-        // PAGAMENTOS FORNECEDOR
-        window.abrirModalPagamento = () => {
-            document.getElementById('pagto-forn-nome').innerText = fornSelecionado;
-            document.getElementById('modalPagto').classList.remove('hidden');
-        };
-
-        window.confirmarPagamentoForn = async () => {
-            const valorTotalParaPagar = parseFloat(document.getElementById('pagto-valor').value);
-            if(!valorTotalParaPagar) return;
-
-            let restante = valorTotalParaPagar;
-            // Busca ordens do fornecedor que tem dívida (Utilizado e Custo > Pago)
-            const ordensComDivida = todosDados.filter(i => i.fornecedor === fornSelecionado && i.status === 'Utilizado' && (parseFloat(i.valorPeca) > (parseFloat(i.pagoAoFornecedor) || 0)));
+            // Renderizar Tabela
+            const corpo = document.getElementById('corpo-matriz-lucro');
+            corpo.innerHTML = '';
             
-            for(let os of ordensComDivida) {
-                if(restante <= 0) break;
-                const custo = parseFloat(os.valorPeca);
-                const jaPago = parseFloat(os.pagoAoFornecedor) || 0;
-                const dividaOS = custo - jaPago;
-                const valorAbatido = Math.min(restante, dividaOS);
+            fornecedores.forEach(f => {
+                let row = `<tr class="hover:bg-slate-50 transition">
+                            <td class="col-forn text-blue-600 uppercase tracking-tighter">${f}</td>`;
+                let totalAnoForn = 0;
                 
-                await updateDoc(doc(db, "controle_os", os.id), { pagoAoFornecedor: jaPago + valorAbatido });
-                restante -= valorAbatido;
-            }
+                matriz[f].forEach(valorMes => {
+                    row += `<td class="${valorMes < 0 ? 'text-red-500' : 'text-slate-600'}">${fmtMoeda(valorMes)}</td>`;
+                    totalAnoForn += valorMes;
+                });
 
-            alert("Pagamento processado com sucesso!");
-            document.getElementById('modalPagto').classList.add('hidden');
-            carregarDados();
-        };
+                row += `<td class="bg-blue-50 text-blue-700 font-black">${fmtMoeda(totalAnoForn)}</td></tr>`;
+                corpo.innerHTML += row;
+            });
 
-        window.exportarExcelFornecedor = () => {
-            const dadosF = todosDados.filter(i => i.fornecedor === fornSelecionado && i.status === 'Utilizado' && (parseFloat(i.valorPeca) > (parseFloat(i.pagoAoFornecedor) || 0)));
-            if(dadosF.length === 0) return alert("Não há peças em aberto para este fornecedor.");
+            // Renderizar Rodapé Totais
+            const footer = document.getElementById('footer-matriz-lucro');
+            let footRow = `<tr><td class="p-6 col-forn bg-slate-900 text-white uppercase">TOTAL MÊS</td>`;
+            let totalGeralAno = 0;
             
-            const formatado = dadosF.map(i => ({
-                Data: fmtData(i.data),
-                OS: i.os,
-                Modelo: i.modelo,
-                Custo: parseFloat(i.valorPeca),
-                Pago: parseFloat(i.pagoAoFornecedor) || 0,
-                Restante: (parseFloat(i.valorPeca) - (parseFloat(i.pagoAoFornecedor) || 0))
-            }));
+            totaisMensais.forEach(v => {
+                footRow += `<td class="p-6">${fmtMoeda(v)}</td>`;
+                totalGeralAno += v;
+            });
 
-            const ws = XLSX.utils.json_to_sheet(formatado);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Em Aberto");
-            XLSX.writeFile(wb, `Aberto_${fornSelecionado}_2026.xlsx`);
+            footRow += `<td class="p-6 bg-blue-600 text-white">${fmtMoeda(totalGeralAno)}</td></tr>`;
+            footer.innerHTML = footRow;
+        }
+
+        window.mudarVisao = (v) => {
+            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active-view'));
+            document.getElementById('view-' + v).classList.add('active-view');
         };
 
-        // SAVE OS
+        // Funções de Modal (Simplificadas)
+        window.abrirModalOS = () => { formOS.reset(); osId.value = ''; modalOS.classList.remove('hidden'); };
+        window.fecharModalOS = () => modalOS.classList.add('hidden');
+        
         document.getElementById('formOS').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const id = document.getElementById('osId').value;
-            const dados = {
-                data: document.getElementById('data').value,
-                os: document.getElementById('os').value,
-                fornecedor: document.getElementById('fornecedor').value,
-                marca: document.getElementById('marca').value,
-                modelo: document.getElementById('modelo').value,
-                valorPeca: parseFloat(document.getElementById('valorPeca').value) || 0,
-                valorOS: parseFloat(document.getElementById('valorOS').value) || 0,
-                status: document.getElementById('status').value
+            const d = {
+                data: data.value, os: os.value, fornecedor: fornecedor.value, modelo: modelo.value,
+                valorPeca: parseFloat(valorPeca.value) || 0, valorOS: parseFloat(valorOS.value) || 0, status: status.value
             };
-            if(id) await updateDoc(doc(db, "controle_os", id), dados);
-            else await addDoc(collection(db, "controle_os"), dados);
-            
+            await addDoc(collection(db, "controle_os"), d);
             fecharModalOS(); carregarDados();
         });
 
-        // IA
-        async function atualizarIA() {
-            const out = document.getElementById('ai-insight');
-            try {
-                const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-                const prompt = `Analise financeiramente: Lucro ${document.getElementById('val-lucro-liquido').innerText}, Dívida Total ${document.getElementById('p-total-aberto').innerText}. Responda em 1 frase motivadora e estratégica em Português.`;
-                const result = await model.generateContent(prompt);
-                out.innerText = result.response.text();
-            } catch(e) { out.innerText = "Monitorando mercado..."; }
-        }
-
-        window.abrirModalOS = () => { document.getElementById('formOS').reset(); document.getElementById('osId').value = ''; document.getElementById('modalOS').classList.remove('hidden'); };
-        window.fecharModalOS = () => document.getElementById('modalOS').classList.add('hidden');
-        window.editarOS = (id) => {
-            const i = todosDados.find(x => x.id === id);
-            document.getElementById('osId').value = i.id;
-            document.getElementById('data').value = i.data;
-            document.getElementById('os').value = i.os;
-            document.getElementById('modelo').value = i.modelo;
-            document.getElementById('marca').value = i.marca || '';
-            document.getElementById('valorPeca').value = i.valorPeca;
-            document.getElementById('valorOS').value = i.valorOS;
-            document.getElementById('status').value = i.status;
-            document.getElementById('fornecedor').value = i.fornecedor;
-            document.getElementById('modalOS').classList.remove('hidden');
-        };
-
-        const fmtMoeda = (v) => (v||0).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
-        const fmtData = (d) => d ? new Date(d + "T12:00:00").toLocaleDateString('pt-BR') : '-';
+        const fmtMoeda = (v) => (v||0).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL', minimumFractionDigits: 0, maximumFractionDigits: 0});
     </script>
 </body>
 </html>
