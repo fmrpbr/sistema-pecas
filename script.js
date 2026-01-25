@@ -110,3 +110,71 @@ const fmtMoeda = (v) => v.toLocaleString('pt-BR', {style: 'currency', currency: 
 
 // Iniciar
 carregarDados();
+// ... (mantenha as configurações de Firebase e IA acima)
+
+document.getElementById('formOS').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const vendaTotal = parseFloat(document.getElementById('valorOS').value);
+    const custoTotal = parseFloat(document.getElementById('valorPeca').value);
+    const qtdParcelas = parseInt(document.getElementById('parcelasForn').value);
+    
+    // Gerar cronograma de pagamentos para o fornecedor
+    const pagamentosPeça = [];
+    const valorParcela = custoTotal / qtdParcelas;
+    const dataBase = new Date();
+
+    for(let i = 0; i < qtdParcelas; i++) {
+        const dataParcela = new Date();
+        dataParcela.setMonth(dataBase.getMonth() + i);
+        pagamentosPeça.push({
+            mes: dataParcela.getMonth() + 1,
+            ano: dataParcela.getFullYear(),
+            valor: valorParcela,
+            pago: false
+        });
+    }
+
+    const novaOS = {
+        modelo: document.getElementById('modelo').value,
+        data: new Date().toISOString().split('T')[0],
+        valorOS: vendaTotal,
+        valorPeca: custoTotal,
+        fornecedor: document.getElementById('fornecedor').value,
+        status: 'ENCOMENDA',
+        cronogramaForn: pagamentosPeça, // Aqui está o segredo do parcelamento da peça
+        lucroBruto: vendaTotal - custoTotal
+    };
+
+    try {
+        await addDoc(collection(db, "controle_os"), novaOS);
+        alert("OS Registrada! A peça foi parcelada em " + qtdParcelas + "x.");
+        fecharModal();
+        carregarDados();
+    } catch (e) { alert("Erro ao salvar."); }
+});
+
+// --- LÓGICA DE BI PARA FLUXO DE CAIXA ---
+function processarFinancas() {
+    let lucroTotal = 0;
+    let comprometidoMesAtual = 0;
+    const hoje = new Date();
+    const mesAtual = hoje.getMonth() + 1;
+
+    dadosLocais.forEach(os => {
+        lucroTotal += (parseFloat(os.lucroBruto) || 0);
+
+        // Verifica quanto da peça cai no mês atual
+        if(os.cronogramaForn) {
+            os.cronogramaForn.forEach(pago => {
+                if(pago.mes === mesAtual) comprometidoMesAtual += pago.valor;
+            });
+        }
+    });
+
+    document.getElementById('total-lucro').innerText = fmtMoeda(lucroTotal);
+    document.getElementById('total-divida').innerText = fmtMoeda(comprometidoMesAtual);
+    
+    // Atualiza a IA com o fluxo de caixa
+    atualizarPromptIA(lucroTotal, comprometidoMesAtual);
+}
