@@ -177,4 +177,17 @@ function processarFinancas() {
     
     // Atualiza a IA com o fluxo de caixa
     atualizarPromptIA(lucroTotal, comprometidoMesAtual);
+}async function atualizarPromptIA(lucro, dividaMes) {
+    const out = document.getElementById('ai-insight');
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+    const prompt = `Analise como consultor financeiro: 
+    Meu lucro bruto acumulado é ${lucro}. 
+    Este mês, tenho ${dividaMes} em parcelas de peças para pagar aos fornecedores.
+    Dê um conselho sobre minha liquidez (dinheiro em caixa) para este mês.`;
+
+    try {
+        const result = await model.generateContent(prompt);
+        out.innerHTML = `<span class='text-blue-400'>Estratégia:</span> ${result.response.text()}`;
+    } catch (e) { console.error(e); }
 }
