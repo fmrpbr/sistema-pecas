@@ -116,65 +116,131 @@
     </div>
 
 <script type="module">
-    // Importações e Configurações (Permanecem iguais ao seu arquivo original)
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy, arrayUnion } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
     import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
 
-    const firebaseConfig = { /* Suas chaves aqui */ };
-    const genAI = new GoogleGenerativeAI("AIzaSyDCy3mPyBKhVKt8tY2NHcEnyJ9YaqpgbLA");
-    
+    // 1. INSIRA SUAS CREDENCIAIS AQUI
+    const firebaseConfig = {
+        apiKey: "AIzaSyCoN6SK7Erhh5f67vGNwuP_cGA_LGeNm4U",
+        authDomain: "controledeos-2de2c.firebaseapp.com",
+        projectId: "controledeos-2de2c",
+        storageBucket: "controledeos-2de2c.firebasestorage.app",
+        messagingSenderId: "1037478732552",
+        appId: "1:1037478732552:web:3d32412d5a713c3cc042bd"
+    };
+
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
+    const genAI = new GoogleGenerativeAI("AIzaSyDCy3mPyBKhVKt8tY2NHcEnyJ9YaqpgbLA");
 
     let todosDados = [];
     let meuGrafico;
 
-    onAuthStateChanged(auth, (u) => {
-        if(u) { carregarDados(); }
+    // --- FUNÇÃO DE LOGIN (O QUE ESTAVA FALTANDO) ---
+    const authForm = document.getElementById('authForm');
+    authForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('authEmail').value;
+        const pass = document.getElementById('authPass').value;
+
+        try {
+            await signInWithEmailAndPassword(auth, email, pass);
+            // O onAuthStateChanged abaixo cuidará de esconder a tela de login
+        } catch (error) {
+            console.error("Erro de login:", error);
+            alert("Falha no login: Verifique e-mail/senha ou permissões no Firebase.");
+        }
     });
 
-    async function carregarDados() {
-        const snapshot = await getDocs(query(collection(db, "controle_os"), orderBy("data", "desc")));
-        todosDados = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    // Observador de Estado de Autenticação
+    onAuthStateChanged(auth, (user) => {
+        const authScreen = document.getElementById('auth-screen');
+        const appContent = document.getElementById('app-content');
         
-        atualizarSaldosInteligentes();
-        renderizarTabelaPrincipal();
-        atualizarGrafico(); // Integrado
+        if (user) {
+            authScreen.classList.add('hidden');
+            appContent.classList.remove('hidden');
+            document.getElementById('displayUserName').innerText = user.email;
+            carregarDados();
+        } else {
+            authScreen.classList.remove('hidden');
+            appContent.classList.add('hidden');
+        }
+    });
+
+    // Logística de Carregamento de Dados
+    async function carregarDados() {
+        try {
+            const q = query(collection(db, "controle_os"), orderBy("data", "desc"));
+            const snapshot = await getDocs(q);
+            todosDados = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+            
+            atualizarSaldosInteligentes();
+            renderizarTabelaPrincipal();
+            atualizarGrafico();
+            atualizarDashboard();
+        } catch (error) {
+            console.error("Erro ao carregar dados:", error);
+        }
     }
 
-    // 1. FUNÇÃO GERAR PDF
-    window.gerarPDFRelatorio = () => {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        doc.setFontSize(18);
-        doc.text("Relatório de Ordens de Serviço - OS PRO", 14, 20);
-        
-        const dadosTabela = todosDados.map(i => [
-            i.os, i.fornecedor, i.modelo, 
-            new Date(i.data + "T12:00:00").toLocaleDateString('pt-BR'), 
-            i.status, fmtMoeda(i.valorOS)
-        ]);
+    // --- FUNÇÕES DE INTERFACE ---
+    window.logout = () => signOut(auth);
 
-        doc.autoTable({
-            head: [['OS', 'Fornecedor', 'Modelo', 'Data', 'Status', 'Valor Venda']],
-            body: dadosTabela,
-            startY: 30,
-            theme: 'striped'
-        });
-        doc.save(`relatorio-os-${new Date().toLocaleDateString()}.pdf`);
+    window.mudarVisao = (view, btn) => {
+        document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+        document.getElementById('view-' + view).classList.add('active');
+        document.querySelectorAll('nav a').forEach(a => a.classList.remove('sidebar-active'));
+        btn.classList.add('sidebar-active');
     };
 
-    // 2. FUNÇÃO ATUALIZAR GRÁFICO
+    function renderizarTabelaPrincipal() {
+        const tbody = document.getElementById('tabelaDashboard');
+        tbody.innerHTML = '';
+        todosDados.forEach(i => {
+            tbody.innerHTML += `
+                <tr>
+                    <td class="font-bold italic">#${i.os || '---'}</td>
+                    <td>${i.fornecedor}</td>
+                    <td>${i.modelo}</td>
+                    <td>${i.data ? new Date(i.data + "T12:00:00").toLocaleDateString('pt-BR') : '---'}</td>
+                    <td class="font-bold text-slate-900">${fmtMoeda(i.valorOS)}</td>
+                    <td><span class="px-2 py-0.5 rounded text-[10px] font-bold ${i.status === 'FINALIZADO' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}">${i.status}</span></td>
+                    <td class="text-right"><i class="fa-solid fa-ellipsis-vertical text-slate-300"></i></td>
+                </tr>`;
+        });
+    }
+
+    function atualizarDashboard() {
+        let lucMes = 0;
+        todosDados.forEach(i => {
+            if(i.status === 'FINALIZADO') lucMes += (parseFloat(i.valorOS) || 0) - (parseFloat(i.valorPeca) || 0);
+        });
+        document.getElementById('dashLucro').innerText = fmtMoeda(lucMes);
+    }
+
+    function atualizarSaldosInteligentes() {
+        const saldos = { Aracruz: 0, Colatina: 0, Outros: 0 };
+        todosDados.forEach(i => {
+            const divida = (parseFloat(i.valorPeca) || 0);
+            if (i.fornecedor === "Aracruz") saldos.Aracruz += divida;
+            else if (i.fornecedor === "Colatina") saldos.Colatina += divida;
+            else saldos.Outros += divida;
+        });
+        document.getElementById('abertoAracruz').innerText = fmtMoeda(saldos.Aracruz);
+        document.getElementById('abertoColatina').innerText = fmtMoeda(saldos.Colatina);
+        document.getElementById('abertoOutros').innerText = fmtMoeda(saldos.Outros);
+    }
+
+    // Gráfico
     function atualizarGrafico() {
-        const canvas = document.getElementById('graficoFaturamento');
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-        const meses = [...new Set(todosDados.map(i => i.data.substring(0, 7)))].sort();
+        const ctx = document.getElementById('graficoFaturamento').getContext('2d');
+        const meses = [...new Set(todosDados.map(i => i.data?.substring(0, 7)))].filter(m => m).sort();
         const valores = meses.map(mes => {
-            return todosDados.filter(i => i.data.startsWith(mes) && i.status === 'FINALIZADO')
+            return todosDados.filter(i => i.data?.startsWith(mes) && i.status === 'FINALIZADO')
                              .reduce((acc, curr) => acc + (parseFloat(curr.valorOS) || 0), 0);
         });
 
@@ -184,20 +250,39 @@
             data: {
                 labels: meses.map(m => m.split('-').reverse().join('/')),
                 datasets: [{
-                    label: 'Faturamento Mensal',
+                    label: 'Faturamento',
                     data: valores,
                     borderColor: '#2563eb',
-                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                    tension: 0.4,
                     fill: true,
-                    tension: 0.4
+                    backgroundColor: 'rgba(37, 99, 235, 0.05)'
                 }]
             },
-            options: { responsive: true, plugins: { legend: { display: false } } }
+            options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
         });
     }
 
-    // Utilitários e outras funções CRUD aqui...
+    // IA
+    window.analisarComIA = async () => {
+        const out = document.getElementById('smartAnalysisText');
+        out.innerHTML = "<i class='fa-solid fa-spinner fa-spin mr-1'></i> Pensando...";
+        try {
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const prompt = `Analise financeiramente os dados de pedidos e dê uma dica de gestão em 2 linhas: ${JSON.stringify(todosDados.slice(0,10))}`;
+            const result = await model.generateContent(prompt);
+            out.innerHTML = result.response.text();
+        } catch (e) { out.innerText = "IA ocupada. Tente novamente."; }
+    };
+
+    // PDF
+    window.gerarPDFRelatorio = () => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.text("Relatório Geral OS PRO", 14, 20);
+        const rows = todosDados.map(i => [i.os, i.fornecedor, i.modelo, i.data, i.status, fmtMoeda(i.valorOS)]);
+        doc.autoTable({ head: [['OS', 'Forn.', 'Modelo', 'Data', 'Status', 'Valor']], body: rows, startY: 30 });
+        doc.save("relatorio.pdf");
+    };
+
     const fmtMoeda = (v) => (v||0).toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
 </script>
-</body>
-</html>
