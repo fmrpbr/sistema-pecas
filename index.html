@@ -288,6 +288,17 @@
                             <button class="btn-primary" onclick="exportarExcel()" style="background: #2563eb; width: auto; padding: 0 20px;">
                                 <i class="fa-solid fa-file-excel"></i> Exportar
                             </button>
+                            <div style="display: flex; gap: 10px;">
+    <input type="file" id="fileInput" accept=".xlsx, .xls, .csv" style="display: none;" onchange="processarImportacao(this)">
+    
+    <button class="btn-primary" onclick="document.getElementById('fileInput').click()" style="background: #8b5cf6; width: auto; padding: 0 20px;">
+        <i class="fa-solid fa-file-import"></i> Importar
+    </button>
+
+    <button class="btn-primary" onclick="abrirModalGlobalPagto()" ... >...</button>
+    <button class="btn-primary" onclick="abrirModal()" ... >...</button>
+    <button class="btn-primary" onclick="exportarExcel()" ... >...</button>
+</div>
                         </div>
                     </div>
 
@@ -915,7 +926,110 @@
         window.fecharModais = () => document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
         const fmtMoeda = (v) => (v||0).toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
         const fmtData = (d) => { if(!d) return '-'; const x = new Date(d+"T12:00:00"); return x.toLocaleDateString('pt-BR'); };
+// --- FUNÇÃO DE IMPORTAÇÃO ---
+window.processarImportacao = (input) => {
+    const file = input.files[0];
+    if (!file) return;
 
+    const reader = new FileReader();
+    
+    reader.onload = async (e) => {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        
+        // Pega a primeira aba da planilha
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        
+        // Converte para JSON
+        const json = XLSX.utils.sheet_to_json(worksheet);
+
+        if (json.length === 0) return alert("Planilha vazia ou formato inválido.");
+
+        if(!confirm(`Encontrados ${json.length} registros. Deseja importar para o sistema?`)) {
+            input.value = ''; // Limpa seleção
+            return;
+        }
+
+        let importados = 0;
+        let erros = 0;
+
+        // Loop para enviar ao Firebase
+        for (const row of json) {
+            try {
+                // Mapeamento: Coluna do Excel -> Campo do Firebase
+                // Ajuste os nomes à direita ("DATA", "MODELO") exatamente como estão no seu Excel
+                
+                // Tratamento de Data
+                let dataFormatada = new Date().toISOString().slice(0, 10); // Hoje como padrão
+                if (row['DATA']) {
+                    // Tenta detectar se é string (2026-01-15) ou número serial do Excel
+                    if (typeof row['DATA'] === 'number') {
+                        // Converte data serial do Excel
+                        const dateObj = new Date(Math.round((row['DATA'] - 25569) * 86400 * 1000));
+                        dataFormatada = dateObj.toISOString().slice(0, 10);
+                    } else if (typeof row['DATA'] === 'string') {
+                        // Pega apenas os 10 primeiros caracteres se for string
+                        dataFormatada = row['DATA'].trim().slice(0, 10); 
+                    }
+                }
+
+                // Normalização de Status
+                let statusFinal = 'ENCOMENDA';
+                const statusExcel = (row['STATUS'] || '').toUpperCase();
+                if (statusExcel.includes('FINALIZAD')) statusFinal = 'FINALIZADO';
+                if (statusExcel.includes('DEVOLU')) statusFinal = 'DEVOLUÇÃO';
+                if (statusExcel.includes('GARANTIA')) statusFinal = 'GARANTIA';
+
+                // Normalização de Valores (Remove R$ e troca vírgula por ponto se necessário)
+                const limparValor = (val) => {
+                    if (typeof val === 'number') return val;
+                    if (typeof val === 'string') {
+                        return parseFloat(val.replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
+                    }
+                    return 0;
+                };
+
+                const novoItem = {
+                    data: dataFormatada,
+                    os: row['OS'] ? String(row['OS']) : 'S/N',
+                    modelo: row['MODELO'] || 'Modelo não informado',
+                    valorPeca: limparValor(row['VALOR PEÇA']),
+                    valorOS: limparValor(row['VALOR OS']),
+                    fornecedor: row['FORNECEDOR'] || 'Outros', // Importante ter a coluna FORNECEDOR preenchida
+                    status: statusFinal,
+                    historicoPagamentos: [] // Começa sem pagamentos registrados no sistema detalhado
+                };
+
+                // Verifica se já estava marcado como pago no Excel para criar um histórico fictício
+                // Se a coluna PAGAMENTO tiver algo como "PIX", "DINHEIRO", consideramos pago?
+                // Opcional: Se quiser registrar o pagamento automaticamente, descomente abaixo:
+                /*
+                if (row['PAGAMENTO'] && row['PAGAMENTO'] !== '-') {
+                    // Se o status for finalizado, assumimos que pagou o fornecedor? 
+                    // Cuidado: Seu excel tem "PAGAMENTO" (forma de receber do cliente) ou pagamento ao fornecedor?
+                    // Assumindo que a coluna PAGAMENTO do excel é como o cliente pagou VOCÊ, não vamos mexer no custo peça.
+                }
+                */
+
+                // Salva no Firestore
+                // Usamos a função addDoc que já está importada no seu código
+                await addDoc(collection(db, "controle_os"), novoItem);
+                importados++;
+
+            } catch (err) {
+                console.error("Erro na linha:", row, err);
+                erros++;
+            }
+        }
+
+        alert(`Processo concluído!\nImportados: ${importados}\nErros: ${erros}`);
+        input.value = ''; // Limpa input
+        // A função carregarDados() do seu código será chamada automaticamente pelo listener do Firebase
+    };
+
+    reader.readAsArrayBuffer(file);
+};
     </script>
 </body>
 </html>
