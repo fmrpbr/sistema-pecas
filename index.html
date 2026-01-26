@@ -870,74 +870,95 @@
             fecharModais();
         });
 
-        // EXPORTAR AVANÇADO
-        window.exportarExcel = () => {
-            const dadosF = todosDados.filter(i => i.fornecedor === tabAtual);
-            if(dadosF.length === 0) return alert("Sem dados para exportar.");
-            
-            // Totais para o final
-            let somaValorFinalizado = 0; // Valor OS
-            let somaPagoTotal = 0;
-            let somaEmAberto = 0;
-            let somaCustoTotal = 0;
+       // --- FUNÇÃO EXPORTAR EXCEL (PADRÃO IDÊNTICO AO ARQUIVO) ---
+window.exportarExcel = () => {
+    // 1. Filtrar pelo fornecedor atual
+    const dadosF = todosDados.filter(i => i.fornecedor === tabAtual);
+    
+    if(dadosF.length === 0) return alert("Sem dados para exportar neste fornecedor.");
+    
+    // 2. Ordenar por Data (Mais recente para mais antiga)
+    dadosF.sort((a,b) => new Date(b.data) - new Date(a.data));
 
-            const dadosFormatados = dadosF.map(item => {
-                let custo = parseFloat(item.valorPeca)||0;
-                let valorVenda = parseFloat(item.valorOS)||0;
-                let pago = 0;
-                let historicoStr = '';
+    // Variáveis para a linha de Totais
+    let somaCusto = 0;
+    let somaVenda = 0;
+    let somaPago = 0;
+    let somaAberto = 0;
 
-                // Montar string de histórico
-                if(item.historicoPagamentos && item.historicoPagamentos.length > 0) {
-                    item.historicoPagamentos.forEach(p => {
-                        pago += p.valor;
-                        let infoExtra = p.parcelas ? `(${p.parcelas})` : '';
-                        historicoStr += `[${fmtData(p.data)} - ${p.forma}${infoExtra}: ${fmtMoeda(p.valor)}]  `;
-                    });
-                } else {
-                    pago = parseFloat(item.valorPagoFornecedor)||0;
-                }
+    // 3. Mapear os dados para o formato exato das colunas
+    const dadosFormatados = dadosF.map(item => {
+        let custo = parseFloat(item.valorPeca) || 0;
+        let venda = parseFloat(item.valorOS) || 0;
+        let pago = 0;
+        let historicoStr = "";
 
-                let emAberto = 0;
-                if(item.status !== 'DEVOLUÇÃO' && item.status !== 'GARANTIA' && item.status !== 'CREDITO') {
-                     emAberto = Math.max(0, custo - pago);
-                }
-
-                // Somatórios
-                somaCustoTotal += custo;
-                somaValorFinalizado += valorVenda;
-                somaPagoTotal += pago;
-                somaEmAberto += emAberto;
-
-                return {
-                    "Data": fmtData(item.data),
-                    "OS": item.os,
-                    "Modelo": item.modelo,
-                    "Status": item.status,
-                    "Custo Peça (R$)": custo,
-                    "Valor OS (R$)": valorVenda,
-                    "Pago ao Fornecedor (R$)": pago,
-                    "Em Aberto (R$)": emAberto,
-                    "Histórico Pagamentos": historicoStr
-                };
+        // Calcular pagamentos e montar a string de histórico
+        if (item.historicoPagamentos && item.historicoPagamentos.length > 0) {
+            item.historicoPagamentos.forEach(p => {
+                pago += parseFloat(p.valor);
+                // Formato: [22/01/2026 - Pix: R$ 50,00]
+                let infoParcela = p.parcelas ? ` (${p.parcelas})` : '';
+                historicoStr += `[${fmtData(p.data)} - ${p.forma}${infoParcela}: ${fmtMoeda(p.valor)}] `;
             });
+        } else {
+            pago = parseFloat(item.valorPagoFornecedor) || 0;
+        }
 
-            // Adicionar Linha de Totais
-            dadosFormatados.push({}); // Linha vazia
-            dadosFormatados.push({
-                "Data": "TOTAIS GERAIS",
-                "Modelo": "--- RESUMO ---",
-                "Custo Peça (R$)": somaCustoTotal,
-                "Valor OS (R$)": somaValorFinalizado,
-                "Pago ao Fornecedor (R$)": somaPagoTotal,
-                "Em Aberto (R$)": somaEmAberto
-            });
+        // Calcular "Em Aberto" (Zerar se for Devolução, Garantia ou Crédito)
+        let emAberto = 0;
+        if (item.status !== 'DEVOLUÇÃO' && item.status !== 'GARANTIA' && item.status !== 'CREDITO') {
+            emAberto = Math.max(0, custo - pago);
+        }
 
-            const ws = XLSX.utils.json_to_sheet(dadosFormatados);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, `Relatorio_${tabAtual}`);
-            XLSX.writeFile(wb, `Relatorio_${tabAtual}_${new Date().toISOString().slice(0,10)}.xlsx`);
+        // Somar aos totais gerais
+        somaCusto += custo;
+        somaVenda += venda;
+        somaPago += pago;
+        somaAberto += emAberto;
+
+        // RETORNO DA LINHA (Nomes das colunas exatos)
+        return {
+            "Data": fmtData(item.data),
+            "OS": item.os || "",
+            "Modelo": item.modelo || "",
+            "Status": item.status,
+            "Custo Peça (R$)": custo,
+            "Valor OS (R$)": venda,
+            "Pago ao Fornecedor (R$)": pago,
+            "Em Aberto (R$)": emAberto,
+            "Histórico Pagamentos": historicoStr.trim()
         };
+    });
+
+    // 4. Adicionar Linha Vazia para separação
+    dadosFormatados.push({
+        "Data": "", "OS": "", "Modelo": "", "Status": "", 
+        "Custo Peça (R$)": "", "Valor OS (R$)": "", 
+        "Pago ao Fornecedor (R$)": "", "Em Aberto (R$)": "", "Histórico Pagamentos": ""
+    });
+
+    // 5. Adicionar Linha de TOTAIS GERAIS
+    dadosFormatados.push({
+        "Data": "TOTAIS GERAIS",
+        "OS": "",
+        "Modelo": "",
+        "Status": "",
+        "Custo Peça (R$)": somaCusto,
+        "Valor OS (R$)": somaVenda,
+        "Pago ao Fornecedor (R$)": somaPago,
+        "Em Aberto (R$)": somaAberto,
+        "Histórico Pagamentos": ""
+    });
+
+    // 6. Gerar e Salvar o Arquivo
+    const ws = XLSX.utils.json_to_sheet(dadosFormatados);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, `Relatorio_${tabAtual}`);
+    
+    // Nome do arquivo com data: Relatorio_NomeFornecedor_AAAA-MM-DD.xlsx
+    XLSX.writeFile(wb, `Relatorio_${tabAtual}_${new Date().toISOString().slice(0,10)}.xlsx`);
+};    
 
         window.mudarVisao = (view, btn) => {
             document.querySelectorAll('.view-section').forEach(e => e.classList.remove('active-view'));
