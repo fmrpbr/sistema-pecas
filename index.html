@@ -208,3 +208,809 @@
                     <div class="stats-grid">
                         <div class="stat-card">
                             <div class="stat-icon" style="background: #eff6ff; color: #3b82f6;"><i class="fa-solid fa-wallet"></i></div>
+                            <span class="stat-value" id="dashFat">R$ 0,00</span>
+                            <span class="stat-label">Faturamento (Mês)</span>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: #ecfdf5; color: #10b981;"><i class="fa-solid fa-sack-dollar"></i></div>
+                            <span class="stat-value" id="dashLucro" style="color: #166534;">R$ 0,00</span>
+                            <span class="stat-label">Lucro Líquido (Mês)</span>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: #fef2f2; color: #ef4444;"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                            <span class="stat-value" id="dashDivida" style="color: #b91c1c;">R$ 0,00</span>
+                            <span class="stat-label">Dívida Fornecedores</span>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: #fffbeb; color: #f59e0b;"><i class="fa-solid fa-rotate-left"></i></div>
+                            <span class="stat-value" id="dashPendente">0</span>
+                            <span class="stat-label">Peças em Aberto</span>
+                        </div>
+                    </div>
+
+                    <div class="grid-charts">
+                        <div class="card-box">
+                            <h3 style="margin-bottom: 20px; font-size: 14px; font-weight: 700;">Histórico Semestral</h3>
+                            <canvas id="chartHistory"></canvas>
+                        </div>
+                        <div class="ai-card card-box">
+                            <div class="ai-header">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                <span class="ai-title">Análise Inteligente de Negócio</span>
+                                <span class="ai-badge">IA BETA</span>
+                            </div>
+                            <div class="ai-content" id="smartAnalysisText">
+                                Coletando dados de movimentação para gerar insights...
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-box">
+                        <h3 style="margin-bottom: 15px; font-size: 14px; font-weight: 700;">Últimas Movimentações</h3>
+                        <div style="overflow-x: auto;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Data</th>
+                                        <th>OS / Descrição</th>
+                                        <th>Valor Venda</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabelaDashboard"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="view-relatorios" class="view-section">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px;">
+                        <div>
+                            <h1 class="header-title">Gestão de Fornecedores</h1>
+                            <p class="header-subtitle">Controle detalhado de encomendas, pagamentos e devoluções.</p>
+                        </div>
+                        <div style="text-align: right;">
+                            <span style="display: block; font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: 700;">Em Aberto (Este Fornecedor)</span>
+                            <span id="repAberto" style="font-size: 24px; font-weight: 800; color: var(--danger);">R$ 0,00</span>
+                        </div>
+                    </div>
+
+                    <div class="toolbar">
+                        <div class="tab-group" id="supplierTabs">
+                            <button class="tab-btn active">Geral</button>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn-primary" onclick="abrirModalGlobalPagto()" style="background: #10b981; width: auto; padding: 0 20px;">
+                                <i class="fa-solid fa-money-bill-wave"></i> Pagar Fornecedor
+                            </button>
+                            <button class="btn-primary" onclick="abrirModal()" style="width: auto; padding: 0 20px;">
+                                <i class="fa-solid fa-plus"></i> Nova Peça/OS
+                            </button>
+                            <button class="btn-primary" onclick="exportarExcel()" style="background: #2563eb; width: auto; padding: 0 20px;">
+                                <i class="fa-solid fa-file-excel"></i> Exportar
+                            </button>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="file" id="fileInput" accept=".xlsx, .xls, .csv" style="display: none;" onchange="processarImportacao(this)">
+                                <button class="btn-primary" onclick="document.getElementById('fileInput').click()" style="background: #8b5cf6; width: auto; padding: 0 20px;">
+                                    <i class="fa-solid fa-file-import"></i> Importar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="supplierAiCard" style="display:none; margin-bottom: 20px; background: #fff; border-left: 4px solid var(--primary); padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                        </div>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Data Ent.</th>
+                                    <th>OS / Modelo</th>
+                                    <th>Valor Compra</th>
+                                    <th>Pago</th>
+                                    <th>Restante</th>
+                                    <th>Status / Alertas</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabelaRelatorio">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div id="modalRegistro" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Registrar Encomenda / Peça</h3>
+                <i class="fa-solid fa-times close-modal" onclick="fecharModais()"></i>
+            </div>
+            <form id="formOS">
+                <input type="hidden" id="editId">
+                
+                <div class="form-grid">
+                    <div class="form-section">Dados da Ordem de Serviço</div>
+                    
+                    <div>
+                        <label style="font-size: 12px; font-weight: 600;">Data Entrada</label>
+                        <input type="date" id="data" class="input-modern" required>
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight: 600;">Número da OS</label>
+                        <input type="text" id="os" class="input-modern" placeholder="Ex: 10540">
+                    </div>
+                    <div class="full-width">
+                        <label style="font-size: 12px; font-weight: 600;">Modelo / Peça</label>
+                        <input type="text" id="modelo" class="input-modern" placeholder="Ex: Display iPhone 11 - Original" required>
+                    </div>
+
+                    <div class="form-section">Financeiro & Fornecedor</div>
+
+                    <div>
+                        <label style="font-size: 12px; font-weight: 600;">Fornecedor</label>
+                        <select id="fornecedor" class="input-modern">
+                            <option value="Aracruz">Aracruz</option>
+                            <option value="Colatina">Colatina</option>
+                            <option value="Vitoria">Vitória</option>
+                            <option value="MercadoLivre">Mercado Livre</option>
+                            <option value="Outros">Outros</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight: 600;">Status</label>
+                        <select id="status" class="input-modern">
+                            <option value="ENCOMENDA">Encomenda (Pendente)</option>
+                            <option value="FINALIZADO">Finalizado (Entregue)</option>
+                            <option value="GARANTIA">Troca em Garantia</option>
+                            <option value="DEVOLUÇÃO">Devolução</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight: 600;">Preço de Compra (R$)</label>
+                        <input type="number" step="0.01" id="valorPeca" class="input-modern" placeholder="0.00">
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight: 600;">Preço de Venda (R$)</label>
+                        <input type="number" step="0.01" id="valorOS" class="input-modern" placeholder="0.00">
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-primary">Salvar Registro</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modalPagamentoGlobal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Realizar Pagamento</h3>
+                <i class="fa-solid fa-times close-modal" onclick="fecharModais()"></i>
+            </div>
+            <div style="background: #ecfdf5; color: #065f46; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 13px;">
+                <i class="fa-solid fa-circle-info"></i> O valor será abatido automaticamente das peças em aberto, da <b>mais antiga</b> para a mais nova (FIFO).
+            </div>
+            <form id="formGlobalPagto">
+                <div style="margin-bottom: 15px;">
+                    <label style="font-size: 12px; font-weight: 600;">Fornecedor</label>
+                    <h2 id="pagtoFornName" style="color: var(--primary);">...</h2>
+                </div>
+                <div class="form-grid">
+                    <div>
+                        <label style="font-size: 12px; font-weight: 600;">Data Pagamento</label>
+                        <input type="date" id="gpData" class="input-modern" required>
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight: 600;">Valor Total (R$)</label>
+                        <input type="number" step="0.01" id="gpValor" class="input-modern" placeholder="0.00" required>
+                    </div>
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <label style="font-size: 12px; font-weight: 600;">Forma de Pagamento</label>
+                    <select id="gpForma" class="input-modern" onchange="toggleParcelas()">
+                        <option value="Pix">Pix</option>
+                        <option value="Dinheiro">Dinheiro</option>
+                        <option value="Boleto">Boleto</option>
+                        <option value="Cartao">Cartão de Crédito</option>
+                        <option value="Credito_Devolucao">Crédito / Devolução</option>
+                    </select>
+                </div>
+                <div id="divParcelas" style="margin-bottom: 20px; display: none;">
+                    <label style="font-size: 12px; font-weight: 600;">Número de Parcelas</label>
+                    <select id="gpParcelas" class="input-modern">
+                        <option value="1x">1x (À Vista)</option>
+                        <option value="2x">2x</option>
+                        <option value="3x">3x</option>
+                        <option value="4x">4x</option>
+                        <option value="5x">5x</option>
+                        <option value="6x">6x</option>
+                        <option value="10x">10x</option>
+                        <option value="12x">12x</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary" style="background: #10b981;">Confirmar Pagamento</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.21.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, query, orderBy, onSnapshot, arrayUnion } from "https://www.gstatic.com/firebasejs/9.21.0/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.21.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCoN6SK7Erhh5f67vGNwuP_cGA_LGeNm4U",
+            authDomain: "controledeos-2de2c.firebaseapp.com",
+            projectId: "controledeos-2de2c",
+            storageBucket: "controledeos-2de2c.firebasestorage.app",
+            messagingSenderId: "1037478732552",
+            appId: "1:1037478732552:web:3d32412d5a713c3cc042bd",
+            measurementId: "G-FQ94ZVSLF5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let todosDados = [];
+        let tabAtual = 'Aracruz';
+        let isRegisterMode = false;
+        let chartHistoryInstance = null;
+
+        // AUTH
+        onAuthStateChanged(auth, (user) => {
+            const screen = document.getElementById('auth-screen');
+            const content = document.getElementById('app-content');
+            if (user) {
+                screen.style.display = 'none';
+                content.style.display = 'block';
+                document.getElementById('displayUserName').innerText = user.displayName || user.email;
+                iniciarListenerDados();
+            } else {
+                screen.style.display = 'flex';
+                content.style.display = 'none';
+            }
+        });
+
+        window.toggleRegister = () => {
+            isRegisterMode = !isRegisterMode;
+            document.getElementById('authName').style.display = isRegisterMode ? 'block' : 'none';
+            document.getElementById('authTitle').innerText = isRegisterMode ? 'Criar Nova Conta' : 'Login Administrativo';
+            document.getElementById('btnAuthSubmit').innerText = isRegisterMode ? 'Cadastrar' : 'Entrar no Sistema';
+            document.querySelector('.auth-toggle').innerText = isRegisterMode ? 'Já tem conta? Faça login' : 'Não tem conta? Cadastre-se';
+        };
+
+        document.getElementById('authForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('authEmail').value;
+            const pass = document.getElementById('authPass').value;
+            const name = document.getElementById('authName').value;
+            try {
+                if (isRegisterMode) {
+                    if(!name) return alert("Digite seu nome!");
+                    const res = await createUserWithEmailAndPassword(auth, email, pass);
+                    await updateProfile(res.user, { displayName: name });
+                    location.reload();
+                } else {
+                    await signInWithEmailAndPassword(auth, email, pass);
+                }
+            } catch (err) { alert("Erro de autenticação: " + err.message); }
+        });
+        window.logout = () => signOut(auth);
+
+        // DATA LISTENER
+        function iniciarListenerDados() {
+            const q = query(collection(db, "controle_os"), orderBy("data", "desc"));
+            
+            onSnapshot(q, (snapshot) => {
+                todosDados = [];
+                snapshot.forEach(docSnap => {
+                    const item = docSnap.data();
+                    item.id = docSnap.id;
+                    todosDados.push(item);
+                });
+                
+                atualizarDashboard();
+                if(document.getElementById('view-relatorios').style.display === 'block') {
+                    renderizarAbasFornecedores();
+                    filtrarRelatorio(tabAtual);
+                } else {
+                    renderizarAbasFornecedores(); 
+                }
+            });
+        }
+
+        function atualizarDashboard() {
+            let fatMes = 0, lucroMes = 0, dividaTotal = 0, pendentesCount = 0;
+            const hoje = new Date();
+            const mesAtualStr = hoje.toISOString().slice(0, 7);
+            const dadosPorMes = {}; 
+
+            todosDados.forEach(item => {
+                const custo = parseFloat(item.valorPeca) || 0;
+                const venda = parseFloat(item.valorOS) || 0;
+                
+                let pago = 0;
+                if (item.historicoPagamentos) item.historicoPagamentos.forEach(p => pago += parseFloat(p.valor));
+                else pago = parseFloat(item.valorPagoFornecedor) || 0;
+
+                const emAberto = Math.max(0, custo - pago);
+
+                if (item.status === 'ENCOMENDA' || item.status === 'FINALIZADO') {
+                    if (item.status !== 'DEVOLUÇÃO') dividaTotal += emAberto;
+                    if (emAberto > 0.01) pendentesCount++;
+                }
+
+                const dataItem = new Date(item.data + "T12:00:00");
+                const mesItemStr = item.data.slice(0, 7);
+
+                if (item.status === 'FINALIZADO') {
+                    if (mesItemStr === mesAtualStr) {
+                        fatMes += venda;
+                        lucroMes += (venda - custo);
+                    }
+                    if (!dadosPorMes[mesItemStr]) dadosPorMes[mesItemStr] = { fat: 0, lucro: 0 };
+                    dadosPorMes[mesItemStr].fat += venda;
+                    dadosPorMes[mesItemStr].lucro += (venda - custo);
+                }
+            });
+
+            document.getElementById('dashFat').innerText = fmtMoeda(fatMes);
+            document.getElementById('dashLucro').innerText = fmtMoeda(lucroMes);
+            document.getElementById('dashDivida').innerText = fmtMoeda(dividaTotal);
+            document.getElementById('dashPendente').innerText = pendentesCount;
+
+            const tabDash = document.getElementById('tabelaDashboard');
+            tabDash.innerHTML = '';
+            todosDados.slice(0, 5).forEach(item => {
+                let badgeClass = 'status-encomenda';
+                if(item.status==='FINALIZADO') badgeClass = 'status-finalizado';
+                if(item.status==='DEVOLUÇÃO') badgeClass = 'status-devolucao';
+                
+                tabDash.innerHTML += `
+                    <tr>
+                        <td>${fmtData(item.data)}</td>
+                        <td><b>${item.os || 'N/A'}</b> - ${item.modelo}</td>
+                        <td>${fmtMoeda(item.valorOS)}</td>
+                        <td><span class="badge ${badgeClass}">${item.status}</span></td>
+                    </tr>
+                `;
+            });
+
+            atualizarGraficoHistorico(dadosPorMes);
+            gerarAnaliseIAGlobal(fatMes, lucroMes, dividaTotal);
+        }
+
+        function atualizarGraficoHistorico(dados) {
+            const labels = Object.keys(dados).sort().slice(-6);
+            const dataFat = labels.map(k => dados[k].fat);
+            const dataLucro = labels.map(k => dados[k].lucro);
+
+            const ctx = document.getElementById('chartHistory').getContext('2d');
+            if(chartHistoryInstance) chartHistoryInstance.destroy();
+            
+            chartHistoryInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Faturamento', data: dataFat, backgroundColor: '#3b82f6', borderRadius: 4 },
+                        { label: 'Lucro', data: dataLucro, backgroundColor: '#10b981', borderRadius: 4 }
+                    ]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+            });
+        }
+
+        function renderizarAbasFornecedores() {
+            const fornecedoresSet = new Set(['Aracruz', 'Colatina', 'Outros']);
+            todosDados.forEach(d => { if(d.fornecedor) fornecedoresSet.add(d.fornecedor); });
+            
+            const container = document.getElementById('supplierTabs');
+            container.innerHTML = '';
+            
+            Array.from(fornecedoresSet).sort().forEach(f => {
+                const btn = document.createElement('button');
+                btn.className = `tab-btn ${f === tabAtual ? 'active' : ''}`;
+                btn.innerText = f;
+                btn.onclick = () => {
+                    tabAtual = f;
+                    renderizarAbasFornecedores();
+                    filtrarRelatorio(f);
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        window.filtrarRelatorio = (fornecedor) => {
+            const tbody = document.getElementById('tabelaRelatorio');
+            tbody.innerHTML = '';
+            let totalAberto = 0;
+            let countDevolucao = 0;
+            let countFinalizado = 0;
+
+            const dadosFiltrados = todosDados.filter(i => i.fornecedor === fornecedor);
+            // Ordena mais recente primeiro
+            dadosFiltrados.sort((a,b) => new Date(b.data) - new Date(a.data));
+
+            dadosFiltrados.forEach(item => {
+                const custo = parseFloat(item.valorPeca) || 0;
+                let pago = 0;
+                let lastPaymentDate = null;
+
+                if (item.historicoPagamentos && item.historicoPagamentos.length > 0) {
+                    item.historicoPagamentos.forEach(p => pago += parseFloat(p.valor));
+                    // Pega a data do último pagamento para exibir
+                    const ultPg = item.historicoPagamentos[item.historicoPagamentos.length - 1];
+                    if(ultPg) lastPaymentDate = ultPg.data;
+                } else {
+                    pago = parseFloat(item.valorPagoFornecedor) || 0;
+                }
+
+                let restante = 0;
+                let statusBadge = '';
+                
+                if (item.status === 'CREDITO') {
+                     const valorCredito = (parseFloat(item.valorOS) || 0) - pago; 
+                     restante = 0; 
+                     statusBadge = `<span class="badge status-credito">CRÉDITO: ${fmtMoeda(valorCredito)}</span>`;
+                } else if (item.status === 'DEVOLUÇÃO') {
+                    restante = 0;
+                    statusBadge = `<span class="badge status-devolucao">DEVOLUÇÃO</span>`;
+                    countDevolucao++;
+                } else if (item.status === 'GARANTIA') {
+                    restante = 0;
+                    statusBadge = `<span class="badge status-garantia">GARANTIA</span>`;
+                } else {
+                    restante = Math.max(0, custo - pago);
+                    if (restante > 0.01) {
+                        totalAberto += restante;
+                        if (item.status === 'FINALIZADO') {
+                            statusBadge = `<span class="badge status-finalizado">ENTREGUE</span>`;
+                            countFinalizado++;
+                        } else {
+                            statusBadge = `<span class="badge status-encomenda">PENDENTE</span>`;
+                        }
+                    } else {
+                        // TOTALMENTE PAGO - MOSTRAR DATA
+                        const dataPgFmt = lastPaymentDate ? fmtData(lastPaymentDate) : 'Pago';
+                        statusBadge = `<span class="badge status-pago"><i class="fa-solid fa-check"></i> Pago: ${dataPgFmt}</span>`;
+                    }
+                }
+
+                // ALERTAS DE TEMPO
+                let rowClass = '';
+                let textoAlerta = '';
+                if (restante > 0.01) {
+                    const dataEntrada = new Date(item.data);
+                    const hoje = new Date();
+                    const diffTime = Math.abs(hoje - dataEntrada);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+
+                    if(diffDays > 60) { rowClass = 'alert-60'; textoAlerta = `<div style="font-size:10px; color:#7f1d1d; font-weight:bold;">${diffDays} dias em aberto!</div>`; }
+                    else if(diffDays > 30) { rowClass = 'alert-30'; textoAlerta = `<div style="font-size:10px; color:#ef4444;">${diffDays} dias</div>`; }
+                    else if(diffDays > 15) { rowClass = 'alert-15'; }
+                    else if(diffDays > 7) { rowClass = 'alert-7'; }
+                }
+
+                const tr = document.createElement('tr');
+                tr.className = rowClass;
+                tr.innerHTML = `
+                    <td>${fmtData(item.data)}</td>
+                    <td>
+                        <div style="font-weight:600;">${item.modelo}</div>
+                        <div style="font-size:11px; color:#64748b;">OS: ${item.os || '-'}</div>
+                    </td>
+                    <td>${fmtMoeda(custo)}</td>
+                    <td style="color:#10b981;">${fmtMoeda(pago)}</td>
+                    <td style="font-weight:bold; color: ${restante > 0 ? '#ef4444' : '#cbd5e1'}">${fmtMoeda(restante)}</td>
+                    <td>
+                        ${statusBadge}
+                        ${textoAlerta}
+                    </td>
+                    <td>
+                        <button class="action-btn btn-edit" onclick="window.editarItem('${item.id}')"><i class="fa-solid fa-pen"></i></button>
+                        <button class="action-btn btn-del" onclick="window.deletarItem('${item.id}')"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('repAberto').innerText = fmtMoeda(totalAberto);
+            gerarAnaliseFornecedor(fornecedor, countFinalizado, countDevolucao, totalAberto);
+        };
+
+        function gerarAnaliseIAGlobal(fat, lucro, divida) {
+            const margem = fat > 0 ? (lucro/fat * 100).toFixed(1) : 0;
+            let msg = `Olá! Analisando seus dados em tempo real. `;
+            if(margem > 40) msg += `Sua margem de lucro está excelente (${margem}%). `;
+            else if(margem < 20) msg += `Atenção à margem de lucro (${margem}%). `;
+            if(divida > (fat * 0.5)) msg += `<b>Alerta:</b> Sua dívida com fornecedores representa mais de 50% do faturamento.`;
+            else msg += `Fluxo de caixa saudável.`;
+            document.getElementById('smartAnalysisText').innerHTML = msg;
+            document.getElementById('sidebarAiSummary').innerHTML = `
+                Dívida Atual: <b>${fmtMoeda(divida)}</b><br>
+                Margem Líquida: <b>${margem}%</b>
+            `;
+        }
+
+        function gerarAnaliseFornecedor(nome, entregues, devolucoes, divida) {
+            const card = document.getElementById('supplierAiCard');
+            const total = entregues + devolucoes;
+            if(total === 0) { card.style.display = 'none'; return; }
+            card.style.display = 'block';
+            const taxaDevolucao = ((devolucoes / total) * 100).toFixed(1);
+            let cor = '#10b981';
+            let status = 'Parceiro Confiável';
+            if(taxaDevolucao > 15) { cor = '#ef4444'; status = 'Alta Taxa de Defeito'; }
+            else if (divida > 2000) { cor = '#f59e0b'; status = 'Crédito em Risco'; }
+
+            card.innerHTML = `
+                <div style="font-weight: 700; color: #1e293b; margin-bottom: 5px;">🤖 Análise: ${nome}</div>
+                <div style="display: flex; gap: 15px; font-size: 13px;">
+                    <div>Taxa de Devolução: <b style="color:${taxaDevolucao>10?'red':'green'}">${taxaDevolucao}%</b></div>
+                    <div>Status: <span style="background:${cor}; color:white; padding:2px 6px; border-radius:4px;">${status}</span></div>
+                </div>
+            `;
+        }
+
+        window.editarItem = (id) => {
+            const item = todosDados.find(i => i.id === id); if(!item) return;
+            document.getElementById('editId').value = id;
+            document.getElementById('modelo').value = item.modelo;
+            document.getElementById('data').value = item.data;
+            document.getElementById('os').value = item.os;
+            document.getElementById('valorPeca').value = item.valorPeca;
+            document.getElementById('valorOS').value = item.valorOS;
+            document.getElementById('status').value = item.status;
+            document.getElementById('fornecedor').value = item.fornecedor || 'Outros';
+            document.getElementById('modalRegistro').style.display = 'flex';
+        };
+
+        window.deletarItem = async(id) => { 
+            if(confirm("Deseja realmente excluir este registro?")) { 
+                await deleteDoc(doc(db, "controle_os", id)); 
+            } 
+        };
+
+        document.getElementById('formOS').addEventListener('submit', async(e) => {
+            e.preventDefault();
+            const id = document.getElementById('editId').value;
+            const dados = {
+                modelo: document.getElementById('modelo').value,
+                data: document.getElementById('data').value,
+                os: document.getElementById('os').value,
+                valorPeca: parseFloat(document.getElementById('valorPeca').value)||0,
+                valorOS: parseFloat(document.getElementById('valorOS').value)||0,
+                status: document.getElementById('status').value,
+                fornecedor: document.getElementById('fornecedor').value
+            };
+            if(id) await updateDoc(doc(db, "controle_os", id), dados); 
+            else await addDoc(collection(db, "controle_os"), { ...dados, historicoPagamentos: [] });
+            fecharModais();
+        });
+
+        // PAGAMENTO FIFO
+        window.toggleParcelas = () => {
+            const forma = document.getElementById('gpForma').value;
+            const div = document.getElementById('divParcelas');
+            div.style.display = (forma === 'Cartao') ? 'block' : 'none';
+        };
+
+        window.abrirModalGlobalPagto = () => {
+            document.getElementById('modalPagamentoGlobal').style.display = 'flex';
+            document.getElementById('pagtoFornName').innerText = tabAtual;
+            document.getElementById('gpValor').value = '';
+            document.getElementById('gpData').valueAsDate = new Date();
+            document.getElementById('gpForma').value = 'Pix';
+            document.getElementById('divParcelas').style.display = 'none';
+        };
+
+        document.getElementById('formGlobalPagto').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const valorPagar = parseFloat(document.getElementById('gpValor').value);
+            const forma = document.getElementById('gpForma').value;
+            const dataPg = document.getElementById('gpData').value;
+            const fornecedor = tabAtual;
+            
+            // Dados extras
+            let parcelas = '';
+            if(forma === 'Cartao') parcelas = document.getElementById('gpParcelas').value;
+
+            let dinheiroRestante = valorPagar;
+            
+            const pendentes = todosDados
+                .filter(i => i.fornecedor === fornecedor && (i.status === 'ENCOMENDA' || i.status === 'FINALIZADO'))
+                .sort((a,b) => new Date(a.data) - new Date(b.data));
+
+            for (const item of pendentes) {
+                if (dinheiroRestante <= 0) break;
+                let custo = parseFloat(item.valorPeca)||0;
+                let pagoAnteriormente = 0;
+                if(item.historicoPagamentos) item.historicoPagamentos.forEach(p => pagoAnteriormente += parseFloat(p.valor));
+                else pagoAnteriormente = parseFloat(item.valorPagoFornecedor)||0;
+
+                const dividaItem = custo - pagoAnteriormente;
+                if (dividaItem > 0.01) {
+                    let valorParaAbater = Math.min(dividaItem, dinheiroRestante);
+                    
+                    // Salvar histórico com forma, data e parcelas (se houver)
+                    await updateDoc(doc(db, "controle_os", item.id), { 
+                        historicoPagamentos: arrayUnion({ 
+                            valor: valorParaAbater, 
+                            forma: forma, 
+                            data: dataPg,
+                            parcelas: parcelas // Salva ex: "3x" se for cartão
+                        }) 
+                    });
+                    
+                    dinheiroRestante -= valorParaAbater;
+                }
+            }
+
+            if (dinheiroRestante > 0.01) {
+                await addDoc(collection(db, "controle_os"), { 
+                    data: dataPg, 
+                    os: 'CRED', 
+                    modelo: 'Saldo excedente pagamento', 
+                    status: 'CREDITO', 
+                    fornecedor: fornecedor, 
+                    valorOS: dinheiroRestante, 
+                    valorPeca: 0, 
+                    historicoPagamentos: [{ valor: 0, forma: forma, data: dataPg }] 
+                });
+                alert(`Pagamento processado! Crédito gerado: ${fmtMoeda(dinheiroRestante)}`);
+            } else {
+                alert("Pagamento distribuído com sucesso (FIFO)!");
+            }
+            fecharModais();
+        });
+
+        // EXPORTAR AVANÇADO
+        window.exportarExcel = () => {
+            const dadosF = todosDados.filter(i => i.fornecedor === tabAtual);
+            if(dadosF.length === 0) return alert("Sem dados para exportar.");
+            
+            // Totais para o final
+            let somaValorFinalizado = 0; // Valor OS
+            let somaPagoTotal = 0;
+            let somaEmAberto = 0;
+            let somaCustoTotal = 0;
+
+            const dadosFormatados = dadosF.map(item => {
+                let custo = parseFloat(item.valorPeca)||0;
+                let valorVenda = parseFloat(item.valorOS)||0;
+                let pago = 0;
+                let historicoStr = '';
+
+                // Montar string de histórico
+                if(item.historicoPagamentos && item.historicoPagamentos.length > 0) {
+                    item.historicoPagamentos.forEach(p => {
+                        pago += p.valor;
+                        let infoExtra = p.parcelas ? `(${p.parcelas})` : '';
+                        historicoStr += `[${fmtData(p.data)} - ${p.forma}${infoExtra}: ${fmtMoeda(p.valor)}]  `;
+                    });
+                } else {
+                    pago = parseFloat(item.valorPagoFornecedor)||0;
+                }
+
+                let emAberto = 0;
+                if(item.status !== 'DEVOLUÇÃO' && item.status !== 'GARANTIA' && item.status !== 'CREDITO') {
+                     emAberto = Math.max(0, custo - pago);
+                }
+
+                // Somatórios
+                somaCustoTotal += custo;
+                somaValorFinalizado += valorVenda;
+                somaPagoTotal += pago;
+                somaEmAberto += emAberto;
+
+                return {
+                    "Data": fmtData(item.data),
+                    "OS": item.os,
+                    "Modelo": item.modelo,
+                    "Status": item.status,
+                    "Custo Peça (R$)": custo,
+                    "Valor OS (R$)": valorVenda,
+                    "Pago ao Fornecedor (R$)": pago,
+                    "Em Aberto (R$)": emAberto,
+                    "Histórico Pagamentos": historicoStr
+                };
+            });
+
+            // Adicionar Linha de Totais
+            dadosFormatados.push({}); // Linha vazia
+            dadosFormatados.push({
+                "Data": "TOTAIS GERAIS",
+                "Modelo": "--- RESUMO ---",
+                "Custo Peça (R$)": somaCustoTotal,
+                "Valor OS (R$)": somaValorFinalizado,
+                "Pago ao Fornecedor (R$)": somaPagoTotal,
+                "Em Aberto (R$)": somaEmAberto
+            });
+
+            const ws = XLSX.utils.json_to_sheet(dadosFormatados);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, `Relatorio_${tabAtual}`);
+            XLSX.writeFile(wb, `Relatorio_${tabAtual}_${new Date().toISOString().slice(0,10)}.xlsx`);
+        };
+
+        window.mudarVisao = (view, btn) => {
+            document.querySelectorAll('.view-section').forEach(e => e.classList.remove('active-view'));
+            document.getElementById('view-'+view).classList.add('active-view');
+            document.querySelectorAll('.menu-item').forEach(e => e.classList.remove('active'));
+            if(btn) btn.classList.add('active');
+            if(view === 'relatorios') filtrarRelatorio(tabAtual);
+        };
+
+        window.abrirModal = () => {
+            document.getElementById('formOS').reset();
+            document.getElementById('editId').value = '';
+            document.getElementById('data').valueAsDate = new Date();
+            document.getElementById('modalRegistro').style.display = 'flex';
+        };
+
+        window.fecharModais = () => document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+        const fmtMoeda = (v) => (v||0).toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+        const fmtData = (d) => { if(!d) return '-'; const x = new Date(d+"T12:00:00"); return x.toLocaleDateString('pt-BR'); };
+        
+        window.processarImportacao = (input) => {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const json = XLSX.utils.sheet_to_json(worksheet);
+                if (json.length === 0) return alert("Planilha vazia.");
+                if(!confirm(`Importar ${json.length} registros?`)) { input.value = ''; return; }
+                let importados = 0;
+                for (const row of json) {
+                    try {
+                        let dataFormatada = new Date().toISOString().slice(0, 10);
+                        if (row['DATA']) {
+                            if (typeof row['DATA'] === 'number') {
+                                const dateObj = new Date(Math.round((row['DATA'] - 25569) * 86400 * 1000));
+                                dataFormatada = dateObj.toISOString().slice(0, 10);
+                            } else if (typeof row['DATA'] === 'string') {
+                                dataFormatada = row['DATA'].trim().slice(0, 10); 
+                            }
+                        }
+                        let statusFinal = 'ENCOMENDA';
+                        const statusExcel = (row['STATUS'] || '').toUpperCase();
+                        if (statusExcel.includes('FINALIZAD')) statusFinal = 'FINALIZADO';
+                        if (statusExcel.includes('DEVOLU')) statusFinal = 'DEVOLUÇÃO';
+                        if (statusExcel.includes('GARANTIA')) statusFinal = 'GARANTIA';
+                        const limparValor = (val) => {
+                            if (typeof val === 'number') return val;
+                            if (typeof val === 'string') return parseFloat(val.replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
+                            return 0;
+                        };
+                        const novoItem = {
+                            data: dataFormatada,
+                            os: row['OS'] ? String(row['OS']) : 'S/N',
+                            modelo: row['MODELO'] || 'Modelo não informado',
+                            valorPeca: limparValor(row['VALOR PEÇA']),
+                            valorOS: limparValor(row['VALOR OS']),
+                            fornecedor: row['FORNECEDOR'] || 'Outros',
+                            status: statusFinal,
+                            historicoPagamentos: []
+                        };
+                        await addDoc(collection(db, "controle_os"), novoItem);
+                        importados++;
+                    } catch (err) { console.error(err); }
+                }
+                alert(`Importados: ${importados}`);
+                input.value = '';
+            };
+            reader.readAsArrayBuffer(file);
+        };
+    </script>
+</body>
+</html>
